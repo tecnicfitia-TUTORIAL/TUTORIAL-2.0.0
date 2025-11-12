@@ -40,7 +40,7 @@ const PlanCard: React.FC<PlanCardProps> = ({ title, description, features, isCur
             disabled={isCurrentPlan}
             className={`w-full mt-auto font-bold py-2 px-4 rounded-lg transition duration-300 ${isCurrentPlan ? 'bg-cyan-600 text-white cursor-default' : isPremium ? 'bg-cyan-600 hover:bg-cyan-700 text-white' : 'bg-gray-600 hover:bg-gray-500 text-white'}`}
         >
-            {isCurrentPlan ? 'Plan Actual' : `Cambiar a ${title}`}
+            {isCurrentPlan ? 'Plan Actual' : `Actualizar a ${title}`}
         </button>
     </div>
 );
@@ -110,6 +110,11 @@ export const AccountModal: React.FC<AccountModalProps> = ({ user, onClose, onPla
                         isCurrentPlan={user.role === UserRole.COLLABORATOR}
                         onSelectPlan={() => onPlanChange(UserRole.COLLABORATOR)}
                     />
+                </div>
+                <div className="text-center mt-8">
+                    <p className="text-xs text-gray-500">
+                        Los pagos son procesados de forma segura por nuestro proveedor externo. No almacenamos los datos de tu tarjeta.
+                    </p>
                 </div>
             </div>
         </div>

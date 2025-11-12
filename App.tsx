@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { UserRole, TaskComplexity, GeneratedProcess, ImageFile, AuthUser, TaskPriority, GuideStatus } from './types';
 import Header from './components/Header';
@@ -91,17 +92,18 @@ const App: React.FC = () => {
     setGeneratedProcess(null);
   }, []);
 
-  const handleChangeUserRole = useCallback((newRole: UserRole) => {
-    if (!currentUser) return;
+  const handlePlanChange = useCallback((newRole: UserRole) => {
+    if (!currentUser || currentUser.role === newRole) return;
     
-    // En una app real, esto sería una llamada a la API para cambiar el plan del usuario.
-    // Aquí simulamos el cambio localmente.
-    let newGenerations: number | typeof Infinity = currentUser.remainingGenerations;
-    if (newRole === UserRole.PRO || newRole === UserRole.COLLABORATOR) newGenerations = Infinity;
-    else if (newRole === UserRole.STANDARD) newGenerations = 20;
-    else if (newRole === UserRole.BASIC) newGenerations = 3;
-
-    setCurrentUser({ ...currentUser, role: newRole, remainingGenerations: newGenerations });
+    // En una aplicación real, esto redirigiría a una pasarela de pago como Stripe.
+    // Aquí simulamos esa acción con una alerta para demostrar el flujo.
+    alert(`Serás redirigido a nuestra pasarela de pago segura para actualizar al plan ${newRole}.\n\n(Esta es una simulación. En un producto real, aquí se iniciaría el proceso de pago con Stripe).`);
+    
+    // TODO: Integrar aquí la redirección a Stripe Checkout.
+    // Una vez el pago sea exitoso, un webhook de Stripe notificaría a nuestro backend,
+    // y el backend actualizaría el rol del usuario en la base de datos.
+    // El frontend vería el nuevo rol en la siguiente carga o a través de una actualización en tiempo real.
+    
     setAccountModalOpen(false);
   }, [currentUser]);
 
@@ -331,7 +333,7 @@ const App: React.FC = () => {
         onHallOfFameClick={() => setGuestView('hallOfFame')}
       />
       <main className="container mx-auto p-4 md:p-8">
-        {error && (
+        {error && !isLoginModalOpen && (
             <div className="bg-red-900/50 border border-red-700 text-red-300 p-4 rounded-lg mb-6">
                 <strong>Error:</strong> {error}
             </div>
@@ -356,7 +358,7 @@ const App: React.FC = () => {
         <AccountModal
             user={currentUser}
             onClose={() => setAccountModalOpen(false)}
-            onPlanChange={handleChangeUserRole}
+            onPlanChange={handlePlanChange}
         />
       )}
        {isFeedbackModalOpen && (

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { GoogleIcon, AppleIcon } from './icons';
+import { GoogleIcon, AppleIcon, AlertTriangleIcon } from './icons';
 
 interface LoginModalProps {
     onLogin: (email: string) => void;
@@ -13,11 +13,30 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLogin, onClose }) => {
     const [mode, setMode] = useState<Mode>('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [termsAccepted, setTermsAccepted] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // En una app real, aquí iría la validación de los campos del formulario.
-        // Para esta simulación, cualquier envío de formulario resulta en un inicio de sesión exitoso.
+        setError(null);
+
+        if (mode === 'register') {
+            if (password.length < 6) {
+                setError('La contraseña debe tener al menos 6 caracteres.');
+                return;
+            }
+            if (password !== confirmPassword) {
+                setError('Las contraseñas no coinciden.');
+                return;
+            }
+            if (!termsAccepted) {
+                setError('Debes aceptar los Términos y Condiciones para registrarte.');
+                return;
+            }
+        }
+        
+        // En una aplicación real, aquí se llamaría a Firebase auth
         onLogin(email);
     };
 
@@ -40,16 +59,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLogin, onClose }) => {
 
                 <div className="mb-6">
                     <div className="flex border-b border-gray-600">
-                        <button onClick={() => setMode('login')} className={`w-1/2 pb-3 text-sm font-bold transition-colors focus:outline-none ${isLoginMode ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-gray-400 hover:text-white'}`}>
+                        <button onClick={() => { setMode('login'); setError(null); }} className={`w-1/2 pb-3 text-sm font-bold transition-colors focus:outline-none ${isLoginMode ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-gray-400 hover:text-white'}`}>
                             INICIAR SESIÓN
                         </button>
-                        <button onClick={() => setMode('register')} className={`w-1/2 pb-3 text-sm font-bold transition-colors focus:outline-none ${!isLoginMode ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-gray-400 hover:text-white'}`}>
+                        <button onClick={() => { setMode('register'); setError(null); }} className={`w-1/2 pb-3 text-sm font-bold transition-colors focus:outline-none ${!isLoginMode ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-gray-400 hover:text-white'}`}>
                             CREAR CUENTA
                         </button>
                     </div>
                 </div>
 
-                <h2 className="text-2xl font-bold text-white mb-6 text-center">{isLoginMode ? 'Bienvenido de nuevo' : 'Únete a nosotros'}</h2>
+                <h2 className="text-2xl font-bold text-white mb-6 text-center">{isLoginMode ? 'Bienvenido de nuevo' : 'Únete a la comunidad'}</h2>
                 
                 <form onSubmit={handleFormSubmit} className="space-y-4">
                     <div>
@@ -63,10 +82,32 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLogin, onClose }) => {
                     {!isLoginMode && (
                          <div>
                             <label htmlFor="confirm-password"className="block text-sm font-medium text-gray-300 mb-2">Confirmar Contraseña</label>
-                            <input type="password" id="confirm-password" className="w-full bg-gray-900 border border-gray-600 rounded-md p-3 text-gray-200 focus:ring-2 focus:ring-cyan-500" placeholder="********" required/>
+                            <input type="password" id="confirm-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full bg-gray-900 border border-gray-600 rounded-md p-3 text-gray-200 focus:ring-2 focus:ring-cyan-500" placeholder="********" required/>
                         </div>
                     )}
-                    <button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+                    {!isLoginMode && (
+                        <div className="flex items-start">
+                            <div className="flex items-center h-5">
+                                <input id="terms" name="terms" type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} className="focus:ring-cyan-500 h-4 w-4 text-cyan-600 border-gray-500 rounded bg-gray-700"/>
+                            </div>
+                            <div className="ml-3 text-sm">
+                                <label htmlFor="terms" className="font-medium text-gray-300">
+                                    Acepto los <a href="#" className="text-cyan-400 hover:underline">Términos y Condiciones</a>
+                                </label>
+                            </div>
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="bg-red-900/50 border border-red-700 text-red-300 p-3 rounded-lg flex items-center space-x-3 text-sm">
+                            <AlertTriangleIcon className="h-5 w-5 text-red-400 flex-shrink-0" />
+                            <p>{error}</p>
+                        </div>
+                    )}
+                    
+                    <button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 disabled:bg-gray-500 disabled:cursor-not-allowed"
+                        disabled={!isLoginMode && !termsAccepted}
+                    >
                         {isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta'}
                     </button>
                 </form>
