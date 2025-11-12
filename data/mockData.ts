@@ -1,0 +1,321 @@
+
+import { GeneratedProcess, GuideStatus, TaskPriority, TaskCategory } from '../types';
+
+export const mockGuides: GeneratedProcess[] = [
+    // --- Approved Guides ---
+    {
+        id: Date.now() - 1,
+        taskTitle: "Cambiar el aceite de un coche",
+        priority: TaskPriority.MEDIUM,
+        category: TaskCategory.AUTOMOTIVE,
+        safetyWarnings: ["Asegurarse de que el motor esté frío.", "Usar gafas de seguridad y guantes.", "Desechar el aceite usado correctamente."],
+        requiredTools: ["Llave de filtro de aceite", "Llave inglesa", "Bandeja de drenaje de aceite", "Embudo", "Gato hidráulico y soportes"],
+        steps: [
+            { stepNumber: 1, title: "Reunir materiales", description: "Junta todo el aceite nuevo, filtro, herramientas y equipo de seguridad." },
+            { stepNumber: 2, title: "Levantar el vehículo", description: "Usa el gato para levantar el coche y asegúralo con los soportes." },
+            { stepNumber: 3, title: "Drenar el aceite viejo", description: "Coloca la bandeja debajo y quita el tapón de drenaje. Deja que todo el aceite salga." },
+            { stepNumber: 4, title: "Cambiar el filtro", description: "Retira el filtro viejo con la llave y coloca el nuevo, lubricando la junta con aceite nuevo." },
+            { stepNumber: 5, title: "Añadir aceite nuevo", description: "Vuelve a colocar el tapón de drenaje y llena el motor con la cantidad correcta de aceite nuevo usando un embudo." }
+        ],
+        onlineResources: [{ title: "Tutorial en vídeo de cambio de aceite", url: "https://www.youtube.com" }],
+        author: 'IA',
+        status: GuideStatus.APPROVED,
+    },
+    {
+        id: Date.now() - 2,
+        taskTitle: "Pintar una pared interior",
+        priority: TaskPriority.LOW,
+        category: TaskCategory.HOME,
+        safetyWarnings: ["Asegurar buena ventilación en la habitación.", "Cubrir muebles y suelos para evitar manchas."],
+        requiredTools: ["Pintura", "Rodillo", "Brocha", "Cinta de pintor", "Bandeja de pintura", "Paños"],
+        steps: [
+            { stepNumber: 1, title: "Preparar la habitación", description: "Mueve los muebles al centro y cúbrelos. Cubre el suelo con plásticos o sábanas." },
+            { stepNumber: 2, title: "Limpiar y preparar la pared", description: "Limpia la pared con agua y jabón. Rellena agujeros y lija suavemente si es necesario." },
+            { stepNumber: 3, title: "Aplicar cinta de pintor", description: "Coloca cinta en los bordes de techos, zócalos y marcos de ventanas/puertas." },
+            { stepNumber: 4, title: "Pintar los bordes", description: "Usa la brocha para pintar los bordes y esquinas donde el rodillo no llega." },
+            { stepNumber: 5, title: "Pintar con el rodillo", description: "Aplica la pintura con el rodillo en forma de 'W' o 'M' para una cobertura uniforme. Aplica una segunda capa si es necesario." }
+        ],
+        onlineResources: [],
+        author: 'Colaborador',
+        authorEmail: 'collab_user_1@test.com',
+        status: GuideStatus.APPROVED,
+    },
+    {
+        id: Date.now() - 3,
+        taskTitle: "Desatascar el desagüe del fregadero",
+        priority: TaskPriority.HIGH,
+        category: TaskCategory.HOME,
+        safetyWarnings: ["No mezclar diferentes productos químicos de limpieza.", "Usar guantes de goma."],
+        requiredTools: ["Ventosa (desatascador)", "Bicarbonato de sodio", "Vinagre", "Agua hirviendo"],
+        steps: [
+            { stepNumber: 1, title: "Intentar con agua hirviendo", description: "Vierte cuidadosamente una olla de agua hirviendo por el desagüe." },
+            { stepNumber: 2, title: "Usar bicarbonato y vinagre", description: "Vierte media taza de bicarbonato de sodio seguida de media taza de vinagre. Tapa el desagüe y deja actuar 15-30 minutos." },
+            { stepNumber: 3, title: "Enjuagar con agua caliente", description: "Vierte más agua hirviendo para limpiar la mezcla y los restos." },
+            { stepNumber: 4, title: "Utilizar la ventosa", description: "Si sigue atascado, llena el fregadero con un poco de agua y usa la ventosa vigorosamente." }
+        ],
+        onlineResources: [{ title: "Cómo limpiar el sifón (para atascos persistentes)", url: "https://www.google.com" }],
+        author: 'IA',
+        status: GuideStatus.APPROVED,
+    },
+    {
+        id: Date.now() - 4,
+        taskTitle: "Limpiar zapatillas blancas de tela",
+        priority: TaskPriority.LOW,
+        category: TaskCategory.CRAFTS,
+        safetyWarnings: [],
+        requiredTools: ["Cepillo de dientes viejo", "Bicarbonato de sodio", "Agua oxigenada", "Agua", "Recipiente pequeño"],
+        steps: [
+            { stepNumber: 1, title: "Quitar cordones y plantillas", description: "Lávalos por separado con agua y jabón." },
+            { stepNumber: 2, title: "Preparar la pasta limpiadora", description: "Mezcla una cucharada de bicarbonato, media de agua oxigenada y media de agua hasta formar una pasta." },
+            { stepNumber: 3, title: "Aplicar y cepillar", description: "Usa el cepillo de dientes para aplicar la pasta por toda la zapatilla y cepilla suavemente." },
+            { stepNumber: 4, title: "Dejar secar al sol", description: "Deja las zapatillas al sol durante 3-4 horas. La pasta se endurecerá." },
+            { stepNumber: 5, title: "Retirar la pasta seca", description: "Golpea las zapatillas para quitar la mayor parte de la pasta seca y usa un cepillo seco para los restos." }
+        ],
+        onlineResources: [],
+        author: 'Colaborador',
+        authorEmail: 'collab_user_2@test.com',
+        status: GuideStatus.APPROVED,
+    },
+    {
+        id: Date.now() - 5,
+        taskTitle: "Montar una estantería de aglomerado (estilo modular)",
+        priority: TaskPriority.MEDIUM,
+        category: TaskCategory.HOME,
+        safetyWarnings: ["Anclar el mueble a la pared para evitar que se vuelque, especialmente si hay niños."],
+        requiredTools: ["Martillo", "Destornillador (preferiblemente eléctrico)", "Nivel"],
+        steps: [
+            { stepNumber: 1, title: "Verificar todas las piezas", description: "Compara el contenido de la caja con la lista de piezas del manual de instrucciones." },
+            { stepNumber: 2, title: "Montar la estructura principal", description: "Sigue los primeros pasos del manual para unir los paneles laterales con los superiores e inferiores." },
+            { stepNumber: 3, title: "Colocar el panel trasero", description: "Clava el panel trasero con los clavos proporcionados, asegurándote de que la estructura esté en ángulo recto." },
+            { stepNumber: 4, title: "Insertar las baldas", description: "Coloca los soportes a la altura deseada e inserta las baldas." },
+            { stepNumber: 5, title: "Anclar a la pared", description: "Mueve el mueble a su ubicación final y utiliza las fijaciones de seguridad para anclarlo a la pared." }
+        ],
+        onlineResources: [{ title: "Manual de montaje de estantería modular", url: "https://www.fabricante-muebles.com" }],
+        author: 'IA',
+        status: GuideStatus.APPROVED,
+    },
+     {
+        id: Date.now() - 6,
+        taskTitle: "Reemplazar la pantalla rota de un smartphone",
+        priority: TaskPriority.HIGH,
+        category: TaskCategory.TECHNOLOGY,
+        safetyWarnings: ["Desconectar la batería antes de manipular cualquier componente.", "Tener cuidado con los fragmentos de cristal.", "Trabajar en un área limpia y bien iluminada."],
+        requiredTools: ["Kit de reparación de móviles (ventosa, púas, destornilladores)", "Pantalla de repuesto", "Pistola de calor o secador de pelo", "Pinzas"],
+        steps: [
+            { stepNumber: 1, title: "Apagar y calentar", description: "Apaga el teléfono completamente. Calienta los bordes de la pantalla con la pistola de calor para ablandar el adhesivo." },
+            { stepNumber: 2, title: "Levantar la pantalla", description: "Usa la ventosa para crear un pequeño hueco y inserta una púa de plástico. Deslízala por los bordes para cortar el adhesivo." },
+            { stepNumber: 3, title: "Desconectar componentes", description: "Levanta la pantalla con cuidado. Localiza y desconecta los cables flexibles de la pantalla y la batería de la placa base." },
+            { stepNumber: 4, title: "Instalar nueva pantalla", description: "Limpia el marco de restos de adhesivo. Conecta la nueva pantalla, vuelve a conectar la batería y enciende el teléfono para probarla antes de sellar." },
+            { stepNumber: 5, title: "Sellar el teléfono", description: "Si la pantalla funciona, apaga el teléfono, aplica nuevo adhesivo (si es necesario) y presiona la pantalla firmemente en su lugar." }
+        ],
+        onlineResources: [{ title: "Guías de iFixit para reparación de móviles", url: "https://www.ifixit.com" }],
+        author: 'Colaborador',
+        authorEmail: 'collab_user_1@test.com',
+        status: GuideStatus.APPROVED,
+    },
+    {
+        id: Date.now() - 7,
+        taskTitle: "Hacer café con una prensa francesa",
+        priority: TaskPriority.LOW,
+        category: TaskCategory.HOME,
+        safetyWarnings: ["Manejar el agua caliente con cuidado."],
+        requiredTools: ["Prensa francesa", "Café molido grueso", "Agua caliente (no hirviendo)", "Hervidor", "Taza"],
+        steps: [
+          { stepNumber: 1, title: "Calentar el agua", description: "Calienta el agua justo por debajo del punto de ebullición (aprox. 93°C)." },
+          { stepNumber: 2, title: "Añadir café", description: "Añade una cucharada de café molido grueso a la prensa por cada 120 ml de agua." },
+          { stepNumber: 3, title: "Verter agua y esperar", description: "Vierte el agua caliente sobre el café, remueve suavemente y coloca la tapa con el émbolo subido. Espera 4 minutos." },
+          { stepNumber: 4, title: "Presionar el émbolo", description: "Presiona el émbolo lenta y constantemente hasta el fondo." },
+          { stepNumber: 5, title: "Servir inmediatamente", description: "Sirve todo el café para evitar que se vuelva amargo por un exceso de extracción." }
+        ],
+        onlineResources: [],
+        author: 'IA',
+        status: GuideStatus.APPROVED,
+    },
+    {
+        id: Date.now() - 8,
+        taskTitle: "Instalar un sistema operativo Linux (Ubuntu)",
+        priority: TaskPriority.MEDIUM,
+        category: TaskCategory.TECHNOLOGY,
+        safetyWarnings: ["Hacer una copia de seguridad de todos los datos importantes antes de empezar.", "Asegurarse de instalar en el disco correcto si hay varios."],
+        requiredTools: ["PC o portátil", "Memoria USB (mínimo 8GB)", "Imagen ISO de Ubuntu", "Software para crear USB booteable (ej. Rufus)"],
+        steps: [
+            { stepNumber: 1, title: "Crear USB de instalación", description: "Descarga la imagen ISO de Ubuntu y usa Rufus para 'quemarla' en la memoria USB." },
+            { stepNumber: 2, title: "Arrancar desde el USB", description: "Reinicia el ordenador y entra en la BIOS/UEFI para configurar el arranque desde la memoria USB." },
+            { stepNumber: 3, title: "Iniciar el instalador", description: "Selecciona 'Probar' o 'Instalar Ubuntu' desde el menú de arranque." },
+            { stepNumber: 4, title: "Seguir el asistente", description: "Elige idioma, distribución de teclado y tipo de instalación (instalar junto a Windows o borrar disco)." },
+            { stepNumber: 5, title: "Finalizar instalación", description: "Selecciona tu ubicación, crea un usuario y contraseña, y espera a que finalice el proceso. Reinicia cuando se te indique." }
+        ],
+        onlineResources: [{ title: "Guía oficial de instalación de Ubuntu", url: "https://ubuntu.com/tutorials/install-ubuntu-desktop" }],
+        author: 'Colaborador',
+        authorEmail: 'collab_user_3@test.com',
+        status: GuideStatus.APPROVED,
+    },
+    {
+        id: Date.now() - 9,
+        taskTitle: "Construir una estantería de madera simple",
+        priority: TaskPriority.MEDIUM,
+        category: TaskCategory.CRAFTS,
+        safetyWarnings: ["Usar gafas de seguridad al cortar y lijar.", "Trabajar en un área ventilada."],
+        requiredTools: ["Tablas de madera (pino)", "Sierra", "Lija", "Taladro", "Tornillos para madera", "Escuadra", "Cinta métrica"],
+        steps: [
+            { stepNumber: 1, title: "Diseñar y medir", description: "Decide las dimensiones de tu estantería. Mide y marca las tablas para los laterales y las baldas." },
+            { stepNumber: 2, title: "Cortar las piezas", description: "Usa la sierra para cortar todas las piezas de madera según tus medidas." },
+            { stepNumber: 3, title: "Lijar todas las superficies", description: "Lija todas las piezas para eliminar astillas y suavizar la madera." },
+            { stepNumber: 4, title: "Ensamblar la estructura", description: "Usa el taladro y los tornillos para unir las baldas a los laterales. Usa la escuadra para asegurar ángulos de 90 grados." },
+            { stepNumber: 5, title: "Acabado (opcional)", description: "Aplica barniz, pintura o cera para proteger la madera y darle el aspecto deseado." }
+        ],
+        onlineResources: [],
+        author: 'Colaborador',
+        authorEmail: 'collab_user_1@test.com',
+        status: GuideStatus.APPROVED,
+    },
+    {
+        id: Date.now() - 10,
+        taskTitle: "Cambiar una cuerda de guitarra acústica",
+        priority: TaskPriority.LOW,
+        category: TaskCategory.CRAFTS,
+        safetyWarnings: ["Aflojar la cuerda vieja antes de cortarla para liberar la tensión de forma segura."],
+        requiredTools: ["Juego de cuerdas nuevo", "Enrollador de clavijas con cortador", "Extractor de pines del puente"],
+        steps: [
+            { stepNumber: 1, title: "Aflojar y quitar la cuerda vieja", description: "Usa el enrollador para aflojar la clavija de la cuerda que vas a cambiar. Quita la cuerda del clavijero y usa el extractor para sacar el pin del puente y liberar el otro extremo." },
+            { stepNumber: 2, title: "Insertar la nueva cuerda", description: "Introduce el extremo con la bola de la nueva cuerda en el agujero del puente y vuelve a insertar el pin firmemente." },
+            { stepNumber: 3, title: "Fijar en el clavijero", description: "Lleva el otro extremo de la cuerda hasta el clavijero correspondiente, pásalo por el agujero y deja unos 5 cm de sobrante." },
+            { stepNumber: 4, title: "Enrollar la cuerda", description: "Usa el enrollador para tensar la cuerda. Asegúrate de que la cuerda se enrolle de forma ordenada hacia abajo en el poste de la clavija." },
+            { stepNumber: 5, title: "Afinar y cortar", description: "Afina la cuerda a la nota correcta. Una vez afinada y estirada, corta el sobrante de cuerda con el cortador." }
+        ],
+        onlineResources: [],
+        author: 'IA',
+        status: GuideStatus.APPROVED,
+    },
+    {
+        id: Date.now() - 11,
+        taskTitle: "Organizar los cables de un escritorio",
+        priority: TaskPriority.LOW,
+        category: TaskCategory.TECHNOLOGY,
+        safetyWarnings: [],
+        requiredTools: ["Bridas de velcro o plástico", "Canaletas para cables", "Cinta de doble cara", "Tijeras"],
+        steps: [
+            { stepNumber: 1, title: "Desconectar todo", description: "Desenchufa todos los dispositivos para poder manejar los cables libremente." },
+            { stepNumber: 2, title: "Agrupar cables por función", description: "Agrupa los cables que van a la misma zona (ej. a la torre del PC, al monitor, a la regleta)." },
+            { stepNumber: 3, title: "Usar bridas", description: "Utiliza las bridas de velcro para unir los grupos de cables. No las aprietes demasiado." },
+            { stepNumber: 4, title: "Ocultar los cables", description: "Pega canaletas en la parte trasera o inferior del escritorio para guiar y ocultar los grupos de cables." },
+            { stepNumber: 5, title: "Conectar todo de nuevo", description: "Vuelve a enchufar todos los dispositivos, asegurándote de que los cables tienen suficiente holgura para el movimiento." }
+        ],
+        onlineResources: [],
+        author: 'IA',
+        status: GuideStatus.APPROVED,
+    },
+    {
+        id: Date.now() - 12,
+        taskTitle: "Diagnosticar por qué un PC no enciende",
+        priority: TaskPriority.HIGH,
+        category: TaskCategory.TECHNOLOGY,
+        safetyWarnings: ["Desconectar el PC de la corriente antes de abrir la carcasa."],
+        requiredTools: ["Destornillador Phillips"],
+        steps: [
+            { stepNumber: 1, title: "Verificar lo básico", description: "Asegúrate de que el cable de alimentación está bien conectado tanto al PC como a la toma de corriente. Prueba con otra toma." },
+            { stepNumber: 2, title: "Comprobar el monitor", description: "Asegúrate de que el monitor está encendido y conectado correctamente al PC. ¿Muestra algún mensaje?" },
+            { stepNumber: 3, title: "Escuchar los pitidos (Beep Codes)", description: "Al encender, ¿el PC emite alguna secuencia de pitidos? Consulta el manual de tu placa base para interpretar su significado." },
+            { stepNumber: 4, title: "Revisar componentes internos", description: "Desconecta el PC, ábrelo y asegúrate de que la memoria RAM y la tarjeta gráfica estén bien insertadas en sus ranuras." },
+            { stepNumber: 5, title: "Probar la fuente de alimentación (PSU)", description: "Si nada funciona, el problema podría ser la fuente de alimentación. Esto puede requerir herramientas más avanzadas para un diagnóstico seguro." }
+        ],
+        onlineResources: [{ title: "Guía de resolución de problemas de arranque de PC", url: "https://www.google.com" }],
+        author: 'Colaborador',
+        authorEmail: 'collab_user_2@test.com',
+        status: GuideStatus.APPROVED,
+    },
+
+    // --- Pending Guides ---
+    {
+        id: Date.now() - 13,
+        taskTitle: "Crear un huerto urbano en un balcón",
+        priority: TaskPriority.MEDIUM,
+        category: TaskCategory.HOME,
+        safetyWarnings: ["Asegurarse de que el balcón puede soportar el peso de las macetas llenas de tierra húmeda.", "Verificar las normativas de la comunidad de vecinos."],
+        requiredTools: ["Macetas o jardineras", "Sustrato universal", "Plantones o semillas (tomates cherry, lechugas, hierbas aromáticas)", "Regadera", "Guantes de jardinería"],
+        steps: [
+            { stepNumber: 1, title: "Elegir la ubicación", description: "Busca el lugar del balcón que reciba al menos 5-6 horas de sol directo al día." },
+            { stepNumber: 2, title: "Preparar los contenedores", description: "Asegúrate de que las macetas tengan agujeros de drenaje. Llénalas con sustrato, dejando unos centímetros libres en la parte superior." },
+            { stepNumber: 3, title: "Plantar", description: "Si usas plantones, haz un agujero en el sustrato, coloca el plantón y cubre las raíces. Si usas semillas, sigue las instrucciones de profundidad del paquete." },
+            { stepNumber: 4, title: "Riego inicial", description: "Riega abundantemente después de plantar para asentar la tierra y eliminar bolsas de aire." },
+            { stepNumber: 5, title: "Mantenimiento", description: "Riega regularmente, asegurándote de que la tierra esté húmeda pero no encharcada. Añade fertilizante orgánico cada 3-4 semanas si es necesario." }
+        ],
+        onlineResources: [{ title: "Calendario de siembra para huertos urbanos", url: "https://www.google.com" }],
+        author: 'Colaborador',
+        authorEmail: 'collab_user_1@test.com',
+        status: GuideStatus.PENDING,
+    },
+    {
+        id: Date.now() - 14,
+        taskTitle: "Limpiar el filtro del aire acondicionado",
+        priority: TaskPriority.MEDIUM,
+        category: TaskCategory.HOME,
+        safetyWarnings: ["Desconectar la alimentación eléctrica del aparato antes de empezar."],
+        requiredTools: ["Destornillador (si es necesario)", "Aspiradora con cepillo", "Agua y jabón neutro"],
+        steps: [
+            { stepNumber: 1, title: "Apagar y acceder al filtro", description: "Apaga el aire acondicionado desde el cuadro eléctrico. Abre la tapa frontal de la unidad interior para localizar los filtros." },
+            { stepNumber: 2, title: "Extraer los filtros", description: "Los filtros suelen salir deslizándolos o soltando unas pestañas. Extráelos con cuidado." },
+            { stepNumber: 3, title: "Limpieza en seco", description: "Usa la aspiradora con un accesorio de cepillo para quitar la mayor parte del polvo y la suciedad." },
+            { stepNumber: 4, title: "Limpieza húmeda", description: "Lava los filtros con agua tibia y jabón neutro. No uses agua muy caliente ni cepillos duros. Acláralos bien." },
+            { stepNumber: 5, title: "Secar y volver a colocar", description: "Deja que los filtros se sequen completamente a la sombra. Una vez secos, vuelve a colocarlos en su sitio y cierra la tapa." }
+        ],
+        onlineResources: [],
+        author: 'Colaborador',
+        authorEmail: 'collab_user_3@test.com',
+        status: GuideStatus.PENDING,
+    },
+     {
+        id: Date.now() - 15,
+        taskTitle: "Configurar una red de invitados en el router",
+        priority: TaskPriority.LOW,
+        category: TaskCategory.TECHNOLOGY,
+        safetyWarnings: ["Utilizar siempre una contraseña fuerte para la red de invitados."],
+        requiredTools: ["Ordenador o smartphone", "Credenciales de acceso al router"],
+        steps: [
+            { stepNumber: 1, title: "Acceder a la configuración del router", description: "Abre un navegador web e introduce la dirección IP de tu router (normalmente 192.168.1.1 o 192.168.0.1)." },
+            { stepNumber: 2, title: "Iniciar sesión", description: "Introduce el nombre de usuario y la contraseña de administrador. Si no los has cambiado, estarán en una pegatina en el router." },
+            { stepNumber: 3, title: "Buscar la opción 'Red de invitados'", description: "Navega por los menús de configuración, normalmente bajo las secciones 'Wireless', 'Wi-Fi' o 'Red'." },
+            { stepNumber: 4, title: "Habilitar y configurar la red", description: "Activa la red de invitados. Asígnale un nombre (SSID) claro, como 'MiCasa_Invitados'." },
+            { stepNumber: 5, title: "Establecer la seguridad", description: "Elige el modo de seguridad (WPA2 es el recomendado) y crea una contraseña diferente a la de tu red principal. Guarda los cambios." }
+        ],
+        onlineResources: [],
+        author: 'Colaborador',
+        authorEmail: 'collab_user_2@test.com',
+        status: GuideStatus.PENDING,
+    },
+    
+    // --- Rejected Guides ---
+    {
+        id: Date.now() - 16,
+        taskTitle: "Hackear la WiFi del vecino",
+        priority: TaskPriority.HIGH,
+        category: TaskCategory.OTHER,
+        safetyWarnings: ["Esto es ilegal y una violación de la privacidad."],
+        requiredTools: ["Software específico"],
+        steps: [
+            { stepNumber: 1, title: "Paso 1", description: "Descripción del paso 1" },
+            { stepNumber: 2, title: "Paso 2", description: "Descripción del paso 2" }
+        ],
+        onlineResources: [],
+        author: 'Colaborador',
+        authorEmail: 'collab_user_4@test.com',
+        status: GuideStatus.REJECTED,
+        moderatorFeedback: "Contenido inapropiado y en contra de los términos de servicio."
+    },
+    {
+        id: Date.now() - 17,
+        taskTitle: "Guía de prueba con poco contenido",
+        priority: TaskPriority.LOW,
+        category: TaskCategory.OTHER,
+        safetyWarnings: [],
+        requiredTools: [],
+        steps: [
+            { stepNumber: 1, title: "Solo un paso", description: "Esta guía es demasiado corta para ser útil." }
+        ],
+        onlineResources: [],
+        author: 'Colaborador',
+        authorEmail: 'collab_user_1@test.com',
+        status: GuideStatus.REJECTED,
+        moderatorFeedback: "La guía es demasiado breve. Por favor, añade más detalles y pasos para que sea útil para la comunidad."
+    }
+];

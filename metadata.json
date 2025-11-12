@@ -1,0 +1,5 @@
+{
+  "name": "TUTORIAL 2.0",
+  "description": "Tu Asistente Digital de Tareas (ADT) utiliza IA para generar guías paso a paso para cualquier tarea. Sube una foto, describe tu problema y obtén un proceso de trabajo detallado.",
+  "requestFramePermissions": []
+}
