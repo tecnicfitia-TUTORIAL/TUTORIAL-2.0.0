@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { GeneratedProcess, ProcessStep, TaskPriority } from '../types';
-import { AlertTriangleIcon, CheckCircleIcon, LinkIcon, ToolIcon, WandIcon, ClipboardIcon, UserIcon } from './icons';
+import { AlertTriangleIcon, CheckCircleIcon, LinkIcon, ToolIcon, WandIcon, ClipboardIcon, UserIcon, ShareIcon } from './icons';
 import { refineStepDescription } from '../services/geminiService';
 
 interface ProcessOutputProps {
@@ -66,8 +65,36 @@ export const ProcessOutput: React.FC<ProcessOutputProps> = ({ process, isLoading
   const [refiningStep, setRefiningStep] = useState<number | null>(null);
   const [refineError, setRefineError] = useState<string | null>(null);
   const [copiedStepNumber, setCopiedStepNumber] = useState<number | null>(null);
-  const [isAllCopied, setIsAllCopied] = useState<boolean>(false);
+  const [copyAllFeedback, setCopyAllFeedback] = useState<string | null>(null);
+  const [shareFeedback, setShareFeedback] = useState<string | null>(null);
   const [isSafetyVisible, setIsSafetyVisible] = useState(false);
+
+  const generateGuideAsText = (process: GeneratedProcess): string => {
+    const sections = [];
+    sections.push(`GUÍA: ${process.taskTitle}`);
+
+    if (process.safetyWarnings && process.safetyWarnings.length > 0) {
+        sections.push("⚠️ Medidas de Seguridad y EPIs:\n" + process.safetyWarnings.map(w => `- ${w}`).join("\n"));
+    }
+
+    if (process.requiredTools && process.requiredTools.length > 0) {
+        sections.push("🛠️ Herramientas y Materiales:\n" + process.requiredTools.map(t => `- ${t}`).join("\n"));
+    }
+
+    if (process.steps && process.steps.length > 0) {
+        sections.push("📝 Pasos a seguir:\n" + process.steps.map(s => `${s.stepNumber}. ${s.title}\n   ${s.description}`).join("\n\n"));
+    }
+
+    if (process.onlineResources && process.onlineResources.length > 0) {
+        sections.push("🔗 Recursos Adicionales:\n" + process.onlineResources.map(r => `- ${r.title}: ${r.url}`).join("\n"));
+    }
+    
+    if (process.groundingSources && process.groundingSources.length > 0) {
+        sections.push("📚 Fuentes de Información:\n" + process.groundingSources.map(r => `- ${r.title}: ${r.url}`).join("\n"));
+    }
+
+    return sections.join("\n\n");
+  };
 
   const handleCopyToClipboard = (text: string, stepNumber: number) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -82,38 +109,41 @@ export const ProcessOutput: React.FC<ProcessOutputProps> = ({ process, isLoading
 
   const handleCopyAll = () => {
     if (!process) return;
-
-    const sections = [];
-    sections.push(process.taskTitle);
-
-    if (process.safetyWarnings && process.safetyWarnings.length > 0) {
-        sections.push("\n⚠️ Medidas de Seguridad y EPIs:\n" + process.safetyWarnings.map(w => `- ${w}`).join("\n"));
-    }
-
-    if (process.requiredTools && process.requiredTools.length > 0) {
-        sections.push("\n🛠️ Herramientas y Materiales:\n" + process.requiredTools.map(t => `- ${t}`).join("\n"));
-    }
-
-    if (process.steps && process.steps.length > 0) {
-        sections.push("\n📝 Pasos a seguir:\n" + process.steps.map(s => `${s.stepNumber}. ${s.title}\n   ${s.description}`).join("\n\n"));
-    }
-
-    if (process.onlineResources && process.onlineResources.length > 0) {
-        sections.push("\n🔗 Recursos Adicionales:\n" + process.onlineResources.map(r => `- ${r.title}: ${r.url}`).join("\n"));
-    }
-    
-    if (process.groundingSources && process.groundingSources.length > 0) {
-        sections.push("\n📚 Fuentes de Información:\n" + process.groundingSources.map(r => `- ${r.title}: ${r.url}`).join("\n"));
-    }
-
-    const fullText = sections.join("\n");
+    const fullText = generateGuideAsText(process);
     
     navigator.clipboard.writeText(fullText).then(() => {
-        setIsAllCopied(true);
-        setTimeout(() => setIsAllCopied(false), 2500);
+        setCopyAllFeedback('¡Copiado!');
+        setTimeout(() => setCopyAllFeedback(null), 2500);
     }).catch(err => {
         console.error('Failed to copy all text: ', err);
     });
+  };
+
+  const handleShare = async () => {
+    if (!process) return;
+
+    const shareText = generateGuideAsText(process);
+    
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: process.taskTitle,
+                text: shareText,
+            });
+        } catch (error) {
+            console.error('Error al compartir:', error);
+        }
+    } else {
+        // Fallback: Copy to clipboard
+        navigator.clipboard.writeText(shareText).then(() => {
+            setShareFeedback('¡Copiado!');
+            setTimeout(() => setShareFeedback(null), 2500);
+        }).catch(err => {
+            console.error('Failed to copy guide text: ', err);
+            setShareFeedback('Error');
+            setTimeout(() => setShareFeedback(null), 2500);
+        });
+    }
   };
 
   const handleRefineStep = async (stepToRefine: ProcessStep) => {
@@ -172,23 +202,42 @@ export const ProcessOutput: React.FC<ProcessOutputProps> = ({ process, isLoading
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <h2 className="text-3xl font-bold text-cyan-400 flex-1">{process.taskTitle}</h2>
             <div className="flex flex-col sm:items-end gap-2 flex-shrink-0">
-                <button 
-                    onClick={handleCopyAll}
-                    className="w-full sm:w-auto flex justify-center items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold py-2 px-3 rounded-lg transition-colors"
-                    aria-label="Copiar toda la guía"
-                >
-                    {isAllCopied ? (
-                        <>
-                            <CheckCircleIcon className="w-4 h-4 text-green-400" />
-                            <span>¡Copiado!</span>
-                        </>
-                    ) : (
-                        <>
-                            <ClipboardIcon className="w-4 h-4" />
-                            <span>Copiar Todo</span>
-                        </>
-                    )}
-                </button>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button 
+                        onClick={handleShare}
+                        className="w-full sm:w-auto flex justify-center items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold py-2 px-3 rounded-lg transition-colors"
+                        aria-label="Compartir guía"
+                    >
+                        {shareFeedback ? (
+                            <>
+                                <CheckCircleIcon className="w-4 h-4 text-green-400" />
+                                <span>{shareFeedback}</span>
+                            </>
+                        ) : (
+                            <>
+                                <ShareIcon className="w-4 h-4" />
+                                <span>Compartir</span>
+                            </>
+                        )}
+                    </button>
+                    <button 
+                        onClick={handleCopyAll}
+                        className="w-full sm:w-auto flex justify-center items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold py-2 px-3 rounded-lg transition-colors"
+                        aria-label="Copiar toda la guía"
+                    >
+                        {copyAllFeedback ? (
+                            <>
+                                <CheckCircleIcon className="w-4 h-4 text-green-400" />
+                                <span>{copyAllFeedback}</span>
+                            </>
+                        ) : (
+                            <>
+                                <ClipboardIcon className="w-4 h-4" />
+                                <span>Copiar Todo</span>
+                            </>
+                        )}
+                    </button>
+                </div>
                 <div className="flex items-center gap-2 self-start sm:self-end">
                   {process.priority && <PriorityBadge priority={process.priority} />}
                   {process.author && <AuthorChip author={process.author} />}

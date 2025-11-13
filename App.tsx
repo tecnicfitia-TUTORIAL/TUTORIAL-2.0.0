@@ -256,7 +256,7 @@ const App: React.FC = () => {
         <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
             {!firebaseReady && (
                 <div className="bg-yellow-600/90 text-center text-white p-2 text-sm shadow-lg">
-                    <strong>MODO DE DEMOSTRACIÓN:</strong> La aplicación se está ejecutando sin conexión. Para habilitar el guardado, el historial y las cuentas de usuario, por favor, <a href="https://github.com/google/aistudio-apps/blob/main/TUTORIAL%202.0/README.md" target="_blank" rel="noopener noreferrer" className="underline hover:text-cyan-200">configura tus claves de API de Firebase</a>.
+                    <strong>MODO DE DEMOSTRACIÓN:</strong> La aplicación se está ejecutando sin conexión. Para habilitar el guardado, el historial y las cuentas de usuario, por favor, <a href="https://github.com/google/aistudio-apps/blob/main/TUTORIAL-2.0/README.md" target="_blank" rel="noopener noreferrer" className="underline hover:text-cyan-200">configura tus claves de API de Firebase</a>.
                 </div>
             )}
             
