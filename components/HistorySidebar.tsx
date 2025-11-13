@@ -4,9 +4,9 @@ import { HistoryIcon, TrashIcon, SearchIcon } from './icons';
 
 interface HistorySidebarProps {
   history: GeneratedProcess[];
-  onSelectItem: (id: number) => void;
+  onSelectItem: (id: string) => void;
   onClearHistory: () => void;
-  activeTaskId: number | null;
+  activeTaskId: string | null;
 }
 
 const getPriorityClass = (priority: TaskPriority) => {
@@ -80,7 +80,7 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({ history, onSelec
           </ul>
         ) : (
           <p className="text-gray-400 text-sm text-center py-8">
-            {history.length > 0 ? 'No se encontraron resultados.' : 'No hay tareas en tu historial. ¡Genera una para empezar!'}
+            {history.length > 0 ? 'No se encontraron resultados.' : 'Tu historial de la IA aparecerá aquí.'}
           </p>
         )}
       </div>

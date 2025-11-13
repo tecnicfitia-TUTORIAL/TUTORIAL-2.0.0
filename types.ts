@@ -1,4 +1,3 @@
-
 export enum UserRole {
   BASIC = 'Nivel Básico',
   STANDARD = 'Estándar',
@@ -28,9 +27,11 @@ export enum TaskCategory {
 }
 
 export interface AuthUser {
+  uid: string; // Added UID to uniquely identify users
   email: string;
   role: UserRole;
   remainingGenerations: number | typeof Infinity;
+  isVerified: boolean;
 }
 
 export interface ProcessStep {
@@ -58,7 +59,7 @@ export interface GroundingSource {
 }
 
 export interface GeneratedProcess {
-  id: number;
+  id: string; // Changed to string to match Firestore document IDs
   taskTitle: string;
   priority: TaskPriority;
   category: TaskCategory;
@@ -68,6 +69,7 @@ export interface GeneratedProcess {
   onlineResources: OnlineResource[];
   author?: 'IA' | 'Colaborador';
   authorEmail?: string;
+  authorId?: string;
   status?: GuideStatus;
   groundingSources?: GroundingSource[];
   moderatorFeedback?: string;

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { GeneratedProcess, OnlineResource, ProcessStep, TaskPriority, TaskCategory } from '../types';
 import { PlusIcon, TrashIcon, VideoIcon, ImageIcon, AlertTriangleIcon, ToolIcon, LinkIcon, UploadIcon } from './icons';
@@ -262,37 +261,38 @@ export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ onContribute
         </div>
         
         <div className="space-y-3">
-            <DynamicListEditor 
-                items={onlineResources.map(r => r.title)} 
-                setItems={(titlesOrUpdater) => {
-                    setOnlineResources(currentResources => {
-                        const currentTitles = currentResources.map(r => r.title);
-                        const newTitles = typeof titlesOrUpdater === 'function' 
-                            ? titlesOrUpdater(currentTitles) 
-                            : titlesOrUpdater;
-                        
-                        return newTitles.map((title, i) => ({
-                            title,
-                            url: currentResources[i]?.url || ''
-                        }));
-                    });
-                }}
-                label="Recursos Adicionales" 
-                placeholder="Título del Recurso" 
-                Icon={LinkIcon} 
-            />
+            <h3 className="flex items-center text-lg font-bold text-gray-300">
+                <LinkIcon className="h-6 w-6 mr-2 text-cyan-400" />
+                Recursos Adicionales
+            </h3>
             {onlineResources.map((resource, index) => (
-                <div key={index} className="space-y-1 pl-8">
-                    <input
-                        type="url"
-                        value={resource.url}
-                        onChange={(e) => handleResourceUrlChange(index, e.target.value)}
-                        className={`w-full bg-gray-900 border rounded-md p-2 text-gray-200 focus:ring-2 ${urlErrors[index] ? 'border-red-500 focus:ring-red-500' : 'border-gray-600 focus:ring-cyan-500'}`}
-                        placeholder={`URL para "${resource.title || `Recurso #${index + 1}`}"`}
+                <div key={index} className="grid sm:grid-cols-2 gap-2">
+                     <input
+                        type="text"
+                        value={resource.title}
+                        onChange={(e) => {
+                            const newResources = [...onlineResources];
+                            newResources[index].title = e.target.value;
+                            setOnlineResources(newResources);
+                        }}
+                        className="w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-gray-200 focus:ring-2 focus:ring-cyan-500"
+                        placeholder={`Título del Recurso #${index + 1}`}
                     />
-                    {urlErrors[index] && <p className="text-red-400 text-xs mt-1">{urlErrors[index]}</p>}
+                    <div className="relative">
+                        <input
+                            type="url"
+                            value={resource.url}
+                            onChange={(e) => handleResourceUrlChange(index, e.target.value)}
+                            className={`w-full bg-gray-900 border rounded-md p-2 text-gray-200 focus:ring-2 ${urlErrors[index] ? 'border-red-500 focus:ring-red-500' : 'border-gray-600 focus:ring-cyan-500'}`}
+                            placeholder={`URL para "${resource.title || `Recurso #${index + 1}`}"`}
+                        />
+                         {urlErrors[index] && <p className="absolute -bottom-4 left-1 text-red-400 text-xs mt-1">{urlErrors[index]}</p>}
+                    </div>
                 </div>
             ))}
+             <button type="button" onClick={() => setOnlineResources([...onlineResources, {title: '', url: ''}])} className="flex items-center gap-1 text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+                <PlusIcon className="w-4 h-4"/> Añadir Recurso
+            </button>
         </div>
 
 
