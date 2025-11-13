@@ -30,7 +30,7 @@ const UserRow: React.FC<{ user: AuthUser }> = ({ user }) => {
     );
 };
 
-export const AdminView: React.FC<AdminViewProps> = () => {
+const AdminView: React.FC<AdminViewProps> = () => {
     const [users, setUsers] = useState<AuthUser[]>([]);
     const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
     
@@ -86,3 +86,5 @@ export const AdminView: React.FC<AdminViewProps> = () => {
         </div>
     );
 };
+
+export default AdminView;

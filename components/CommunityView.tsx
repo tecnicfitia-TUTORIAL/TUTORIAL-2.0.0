@@ -56,7 +56,7 @@ const GuideCard: React.FC<{ guide: GeneratedProcess, onSelect: () => void }> = (
     );
 };
 
-export const CommunityView: React.FC<CommunityViewProps> = ({ onSelectGuide, onAuthRequest }) => {
+const CommunityView: React.FC<CommunityViewProps> = ({ onSelectGuide, onAuthRequest }) => {
     const [guides, setGuides] = useState<GeneratedProcess[]>([]);
     const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
     const [searchTerm, setSearchTerm] = useState('');
@@ -158,3 +158,5 @@ export const CommunityView: React.FC<CommunityViewProps> = ({ onSelectGuide, onA
         </div>
     );
 };
+
+export default CommunityView;

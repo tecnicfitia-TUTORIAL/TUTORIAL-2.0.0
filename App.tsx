@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { TaskInputForm } from './components/TaskInputForm';
 import { ProcessOutput } from './components/ProcessOutput';
 import { HistorySidebar } from './components/HistorySidebar';
@@ -9,15 +9,18 @@ import { ManagePlanModal } from './components/ManagePlanModal';
 import { FeedbackModal } from './components/FeedbackModal';
 import Header from './components/Header';
 import { VerificationBanner } from './components/VerificationBanner';
-import { CommunityView } from './components/CommunityView';
-import { CollaboratorView } from './components/CollaboratorView';
-import { AdminView } from './components/AdminView';
-import { HallOfFameView } from './components/HallOfFameView';
+import { SpinnerIcon } from './components/icons';
 
 import { AuthUser, GeneratedProcess, ImageFile, TaskComplexity, TaskPriority, UserRole } from './types';
 import * as geminiService from './services/geminiService';
 import * as apiService from './services/apiService';
 import { firebaseState } from './services/firebase';
+
+// Lazy load views for code splitting
+const CommunityView = lazy(() => import('./components/CommunityView'));
+const CollaboratorView = lazy(() => import('./components/CollaboratorView'));
+const AdminView = lazy(() => import('./components/AdminView'));
+const HallOfFameView = lazy(() => import('./components/HallOfFameView'));
 
 const App: React.FC = () => {
     const [user, setUser] = useState<AuthUser | null>(null);
@@ -240,6 +243,12 @@ const App: React.FC = () => {
         return <div className="h-screen w-screen flex items-center justify-center bg-gray-900"><div className="animate-spin rounded-full h-16 w-16 border-b-2 border-cyan-400"></div></div>;
     }
 
+    const suspenseFallback = (
+        <div className="h-full w-full flex items-center justify-center p-16">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-cyan-400"></div>
+        </div>
+    );
+
     return (
         <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
             {!firebaseReady && (
@@ -260,7 +269,9 @@ const App: React.FC = () => {
             {user && !user.isVerified && <VerificationBanner onResend={handleResendVerification} message={verificationMessage}/>}
             
             <main className="container mx-auto p-4 sm:p-8 flex-grow">
-                {user ? renderActiveView() : <GuestView onLogin={() => handleOpenAuthModal('register')} />}
+                <Suspense fallback={suspenseFallback}>
+                    {user ? renderActiveView() : <GuestView onLogin={() => handleOpenAuthModal('register')} />}
+                </Suspense>
             </main>
 
             <footer className="bg-gray-800/50 border-t border-gray-700/50 mt-auto">

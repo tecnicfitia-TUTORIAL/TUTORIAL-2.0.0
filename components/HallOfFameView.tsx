@@ -11,7 +11,7 @@ interface HallOfFameViewProps {
     onBack: () => void;
 }
 
-export const HallOfFameView: React.FC<HallOfFameViewProps> = ({ onBack }) => {
+const HallOfFameView: React.FC<HallOfFameViewProps> = ({ onBack }) => {
   const [contributors, setContributors] = useState<Contributor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -92,3 +92,5 @@ export const HallOfFameView: React.FC<HallOfFameViewProps> = ({ onBack }) => {
     </div>
   );
 };
+
+export default HallOfFameView;

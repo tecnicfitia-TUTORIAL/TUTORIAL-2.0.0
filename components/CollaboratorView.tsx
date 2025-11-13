@@ -66,7 +66,7 @@ const DynamicListEditor: React.FC<{
     );
 };
 
-export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ onContribute }) => {
+const CollaboratorView: React.FC<CollaboratorViewProps> = ({ onContribute }) => {
     const [taskTitle, setTaskTitle] = useState('');
     const [priority, setPriority] = useState<TaskPriority>(TaskPriority.MEDIUM);
     const [category, setCategory] = useState<TaskCategory>(TaskCategory.OTHER);
@@ -303,3 +303,5 @@ export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ onContribute
     </div>
   );
 };
+
+export default CollaboratorView;
