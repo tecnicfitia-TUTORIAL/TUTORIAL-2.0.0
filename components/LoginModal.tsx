@@ -1,5 +1,5 @@
 import React, { useState, FormEvent } from 'react';
-import { SpinnerIcon, EnvelopeIcon, XCircleIcon, CheckCircleIcon } from './icons';
+import { SpinnerIcon, EnvelopeIcon, XCircleIcon, CheckCircleIcon, GoogleIcon, AppleIcon, GithubIcon } from './icons';
 import * as apiService from '../services/apiService';
 import { AuthUser } from '../types';
 
@@ -70,6 +70,45 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onLoginSuccess,
     }
   };
   
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const user = await apiService.loginWithGoogle();
+      onLoginSuccess(user);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+   const handleAppleLogin = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const user = await apiService.loginWithApple();
+      onLoginSuccess(user);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGithubLogin = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const user = await apiService.loginWithGithub();
+      onLoginSuccess(user);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   const resetFormState = (newView: AuthView) => {
     setError(null);
     setPassword('');
@@ -81,46 +120,70 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onLoginSuccess,
   const renderContent = () => {
     switch(view) {
         case 'login':
-            return (
-                <form onSubmit={handleLogin} className="space-y-4">
-                    <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email</label>
-                        <input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} required className="mt-1 w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-gray-200 focus:ring-2 focus:ring-cyan-500" />
-                    </div>
-                    <div>
-                        <label htmlFor="password"className="block text-sm font-medium text-gray-300">Contraseña</label>
-                        <input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} required className="mt-1 w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-gray-200 focus:ring-2 focus:ring-cyan-500" />
-                    </div>
-                    <button type="submit" disabled={isLoading} className="w-full flex justify-center items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition disabled:bg-gray-500">
-                        {isLoading && <SpinnerIcon className="w-5 h-5"/>}
-                        Iniciar Sesión
-                    </button>
-                    <div className="text-xs text-center text-gray-400">
-                        <button type="button" onClick={() => resetFormState('forgot')} className="hover:underline text-cyan-400">¿Olvidaste tu contraseña?</button>
-                    </div>
-                </form>
-            );
         case 'register':
             return (
-                 <form onSubmit={handleRegister} className="space-y-4">
-                    <div>
-                        <label htmlFor="reg-email" className="block text-sm font-medium text-gray-300">Email</label>
-                        <input type="email" id="reg-email" value={email} onChange={e => setEmail(e.target.value)} required className="mt-1 w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-gray-200 focus:ring-2 focus:ring-cyan-500" />
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <button onClick={handleGoogleLogin} disabled={isLoading} className="w-full flex justify-center items-center gap-3 bg-white text-gray-700 font-semibold py-2.5 px-4 rounded-lg transition hover:bg-gray-200 disabled:opacity-50">
+                            <GoogleIcon className="w-5 h-5"/> Continúa con Google
+                        </button>
+                        <button onClick={handleAppleLogin} disabled={isLoading} className="w-full flex justify-center items-center gap-3 bg-black text-white font-semibold py-2.5 px-4 rounded-lg transition hover:bg-gray-800 disabled:opacity-50">
+                            <AppleIcon className="w-5 h-5"/> Continúa con Apple
+                        </button>
+                        <button onClick={handleGithubLogin} disabled={isLoading} className="w-full flex justify-center items-center gap-3 bg-[#333] text-white font-semibold py-2.5 px-4 rounded-lg transition hover:bg-[#444] disabled:opacity-50">
+                            <GithubIcon className="w-5 h-5"/> Continúa con GitHub
+                        </button>
                     </div>
-                    <div>
-                        <label htmlFor="reg-password"className="block text-sm font-medium text-gray-300">Contraseña</label>
-                        <input type="password" id="reg-password" value={password} onChange={e => setPassword(e.target.value)} required className="mt-1 w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-gray-200 focus:ring-2 focus:ring-cyan-500" />
+
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-600" />
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="bg-gray-800 px-2 text-gray-400">O</span>
+                        </div>
                     </div>
-                    <div>
-                        <label htmlFor="reg-confirm-password"className="block text-sm font-medium text-gray-300">Confirmar Contraseña</label>
-                        <input type="password" id="reg-confirm-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required className="mt-1 w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-gray-200 focus:ring-2 focus:ring-cyan-500" />
-                    </div>
-                    <p className="text-xs text-gray-500 text-center">Al registrarte, se te enviará un correo para verificar tu cuenta.</p>
-                    <button type="submit" disabled={isLoading} className="w-full flex justify-center items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition disabled:bg-gray-500">
-                        {isLoading && <SpinnerIcon className="w-5 h-5"/>}
-                        Crear Cuenta y Entrar
-                    </button>
-                </form>
+                    
+                    {view === 'login' ? (
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <div>
+                                <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email</label>
+                                <input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} required className="mt-1 w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-gray-200 focus:ring-2 focus:ring-cyan-500" />
+                            </div>
+                            <div>
+                                <label htmlFor="password"className="block text-sm font-medium text-gray-300">Contraseña</label>
+                                <input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} required className="mt-1 w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-gray-200 focus:ring-2 focus:ring-cyan-500" />
+                            </div>
+                            <button type="submit" disabled={isLoading} className="w-full flex justify-center items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition disabled:bg-gray-500">
+                                {isLoading && <SpinnerIcon className="w-5 h-5"/>}
+                                Iniciar Sesión
+                            </button>
+                            <div className="text-xs text-center text-gray-400">
+                                <button type="button" onClick={() => resetFormState('forgot')} className="hover:underline text-cyan-400">¿Olvidaste tu contraseña?</button>
+                            </div>
+                        </form>
+                    ) : (
+                         <form onSubmit={handleRegister} className="space-y-4">
+                            <div>
+                                <label htmlFor="reg-email" className="block text-sm font-medium text-gray-300">Email</label>
+                                <input type="email" id="reg-email" value={email} onChange={e => setEmail(e.target.value)} required className="mt-1 w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-gray-200 focus:ring-2 focus:ring-cyan-500" />
+                            </div>
+                            <div>
+                                <label htmlFor="reg-password"className="block text-sm font-medium text-gray-300">Contraseña</label>
+                                <input type="password" id="reg-password" value={password} onChange={e => setPassword(e.target.value)} required className="mt-1 w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-gray-200 focus:ring-2 focus:ring-cyan-500" />
+                            </div>
+                            <div>
+                                <label htmlFor="reg-confirm-password"className="block text-sm font-medium text-gray-300">Confirmar Contraseña</label>
+                                <input type="password" id="reg-confirm-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required className="mt-1 w-full bg-gray-900 border border-gray-600 rounded-md p-2 text-gray-200 focus:ring-2 focus:ring-cyan-500" />
+                            </div>
+                            <p className="text-xs text-gray-500 text-center">Al registrarte con tu email, se te enviará un correo para verificar tu cuenta.</p>
+                            <button type="submit" disabled={isLoading} className="w-full flex justify-center items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition disabled:bg-gray-500">
+                                {isLoading && <SpinnerIcon className="w-5 h-5"/>}
+                                Crear Cuenta y Entrar
+                            </button>
+                        </form>
+                    )}
+                </div>
             );
         case 'forgot':
              return (
@@ -171,7 +234,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onLoginSuccess,
         <div className="text-xs text-center text-gray-400 mt-4">
             {view === 'login' && <p>¿No tienes cuenta? <button onClick={() => resetFormState('register')} className="hover:underline text-cyan-400">Regístrate</button></p>}
             {view === 'register' && <p>¿Ya tienes cuenta? <button onClick={() => resetFormState('login')} className="hover:underline text-cyan-400">Inicia Sesión</button></p>}
-            {view === 'forgot' || view === 'forgot_sent' && <p><button onClick={() => resetFormState('login')} className="hover:underline text-cyan-400">Volver a Iniciar Sesión</button></p>}
+            {(view === 'forgot' || view === 'forgot_sent') && <p><button onClick={() => resetFormState('login')} className="hover:underline text-cyan-400">Volver a Iniciar Sesión</button></p>}
         </div>
 
       </div>

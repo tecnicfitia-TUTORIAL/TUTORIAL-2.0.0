@@ -1,12 +1,9 @@
-
-
 import { GeneratedProcess, GuideStatus, TaskPriority, TaskCategory } from '../types';
 
 export const mockGuides: GeneratedProcess[] = [
     // --- Approved Guides ---
     {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 1).toString(),
+        id: "mock-1",
         taskTitle: "Cambiar el aceite de un coche",
         priority: TaskPriority.MEDIUM,
         category: TaskCategory.AUTOMOTIVE,
@@ -24,8 +21,7 @@ export const mockGuides: GeneratedProcess[] = [
         status: GuideStatus.APPROVED,
     },
     {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 2).toString(),
+        id: "mock-2",
         taskTitle: "Pintar una pared interior",
         priority: TaskPriority.LOW,
         category: TaskCategory.HOME,
@@ -44,8 +40,7 @@ export const mockGuides: GeneratedProcess[] = [
         status: GuideStatus.APPROVED,
     },
     {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 3).toString(),
+        id: "mock-3",
         taskTitle: "Desatascar el desagüe del fregadero",
         priority: TaskPriority.HIGH,
         category: TaskCategory.HOME,
@@ -62,8 +57,7 @@ export const mockGuides: GeneratedProcess[] = [
         status: GuideStatus.APPROVED,
     },
     {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 4).toString(),
+        id: "mock-4",
         taskTitle: "Limpiar zapatillas blancas de tela",
         priority: TaskPriority.LOW,
         category: TaskCategory.CRAFTS,
@@ -82,8 +76,7 @@ export const mockGuides: GeneratedProcess[] = [
         status: GuideStatus.APPROVED,
     },
     {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 5).toString(),
+        id: "mock-5",
         taskTitle: "Montar una estantería de aglomerado (estilo modular)",
         priority: TaskPriority.MEDIUM,
         category: TaskCategory.HOME,
@@ -101,8 +94,7 @@ export const mockGuides: GeneratedProcess[] = [
         status: GuideStatus.APPROVED,
     },
      {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 6).toString(),
+        id: "mock-6",
         taskTitle: "Reemplazar la pantalla rota de un smartphone",
         priority: TaskPriority.HIGH,
         category: TaskCategory.TECHNOLOGY,
@@ -121,8 +113,7 @@ export const mockGuides: GeneratedProcess[] = [
         status: GuideStatus.APPROVED,
     },
     {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 7).toString(),
+        id: "mock-7",
         taskTitle: "Hacer café con una prensa francesa",
         priority: TaskPriority.LOW,
         category: TaskCategory.HOME,
@@ -140,8 +131,7 @@ export const mockGuides: GeneratedProcess[] = [
         status: GuideStatus.APPROVED,
     },
     {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 8).toString(),
+        id: "mock-8",
         taskTitle: "Instalar un sistema operativo Linux (Ubuntu)",
         priority: TaskPriority.MEDIUM,
         category: TaskCategory.TECHNOLOGY,
@@ -160,8 +150,7 @@ export const mockGuides: GeneratedProcess[] = [
         status: GuideStatus.APPROVED,
     },
     {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 9).toString(),
+        id: "mock-9",
         taskTitle: "Construir una estantería de madera simple",
         priority: TaskPriority.MEDIUM,
         category: TaskCategory.CRAFTS,
@@ -180,8 +169,7 @@ export const mockGuides: GeneratedProcess[] = [
         status: GuideStatus.APPROVED,
     },
     {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 10).toString(),
+        id: "mock-10",
         taskTitle: "Cambiar una cuerda de guitarra acústica",
         priority: TaskPriority.LOW,
         category: TaskCategory.CRAFTS,
@@ -199,8 +187,7 @@ export const mockGuides: GeneratedProcess[] = [
         status: GuideStatus.APPROVED,
     },
     {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 11).toString(),
+        id: "mock-11",
         taskTitle: "Organizar los cables de un escritorio",
         priority: TaskPriority.LOW,
         category: TaskCategory.TECHNOLOGY,
@@ -218,8 +205,7 @@ export const mockGuides: GeneratedProcess[] = [
         status: GuideStatus.APPROVED,
     },
     {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 12).toString(),
+        id: "mock-12",
         taskTitle: "Diagnosticar por qué un PC no enciende",
         priority: TaskPriority.HIGH,
         category: TaskCategory.TECHNOLOGY,
@@ -240,8 +226,7 @@ export const mockGuides: GeneratedProcess[] = [
 
     // --- Pending Guides ---
     {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 13).toString(),
+        id: "mock-13",
         taskTitle: "Crear un huerto urbano en un balcón",
         priority: TaskPriority.MEDIUM,
         category: TaskCategory.HOME,
@@ -260,8 +245,7 @@ export const mockGuides: GeneratedProcess[] = [
         status: GuideStatus.PENDING,
     },
     {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 14).toString(),
+        id: "mock-14",
         taskTitle: "Limpiar el filtro del aire acondicionado",
         priority: TaskPriority.MEDIUM,
         category: TaskCategory.HOME,
@@ -280,8 +264,7 @@ export const mockGuides: GeneratedProcess[] = [
         status: GuideStatus.PENDING,
     },
      {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 15).toString(),
+        id: "mock-15",
         taskTitle: "Configurar una red de invitados en el router",
         priority: TaskPriority.LOW,
         category: TaskCategory.TECHNOLOGY,
@@ -302,8 +285,7 @@ export const mockGuides: GeneratedProcess[] = [
     
     // --- Rejected Guides ---
     {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 16).toString(),
+        id: "mock-16",
         taskTitle: "Hackear la WiFi del vecino",
         priority: TaskPriority.HIGH,
         category: TaskCategory.OTHER,
@@ -320,8 +302,7 @@ export const mockGuides: GeneratedProcess[] = [
         moderatorFeedback: "Contenido inapropiado y en contra de los términos de servicio."
     },
     {
-        // FIX: Changed id to be a string
-        id: (Date.now() - 17).toString(),
+        id: "mock-17",
         taskTitle: "Guía de prueba con poco contenido",
         priority: TaskPriority.LOW,
         category: TaskCategory.OTHER,

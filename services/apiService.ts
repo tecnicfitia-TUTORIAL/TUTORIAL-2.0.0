@@ -1,6 +1,5 @@
-// FIX: Imported ProcessStep type
-import { AuthUser, GeneratedProcess, ImageFile, TaskComplexity, TaskPriority, UserRole, GuideStatus, TaskCategory, ProcessStep } from '../types';
-import { auth, db } from './firebase';
+import { AuthUser, GeneratedProcess, ImageFile, TaskComplexity, TaskPriority, UserRole, GuideStatus, TaskCategory, ProcessStep, GroundingSource } from '../types';
+import { firebaseState, auth, db } from './firebase';
 import { 
     createUserWithEmailAndPassword, 
     signInWithEmailAndPassword, 
@@ -8,36 +7,116 @@ import {
     onAuthStateChanged,
     sendPasswordResetEmail,
     sendEmailVerification,
-    User as FirebaseUser
+    User as FirebaseUser,
+    GoogleAuthProvider,
+    signInWithPopup,
+    getAdditionalUserInfo,
+    OAuthProvider,
+    GithubAuthProvider
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, addDoc, getDocs, query, where, updateDoc, deleteDoc, serverTimestamp, orderBy, writeBatch, limit } from 'firebase/firestore';
 import { mockGuides } from '../data/mockData';
+import { GoogleGenAI, Type } from "@google/genai";
 
 
 // --- SERVICIO DE AUTENTICACIÓN (CON FIREBASE) ---
 
-const syncUserVerificationStatus = async (firebaseUser: FirebaseUser) => {
-    const userDocRef = doc(db, "users", firebaseUser.uid);
-    const userDoc = await getDoc(userDocRef);
-    if (userDoc.exists() && userDoc.data().isVerified !== firebaseUser.emailVerified) {
-        await updateDoc(userDocRef, { isVerified: firebaseUser.emailVerified });
+// DRY function to handle user creation/retrieval after social login
+const handleSocialLogin = async (firebaseUser: FirebaseUser, isNewUser: boolean): Promise<AuthUser> => {
+    if (isNewUser) {
+        const newUser: Omit<AuthUser, 'email' | 'uid' | 'isVerified'> = {
+            role: UserRole.BASIC,
+            remainingGenerations: 10
+        };
+        await setDoc(doc(db, "users", firebaseUser.uid), {
+            ...newUser,
+            isVerified: true, // Social accounts are considered verified
+            email: firebaseUser.email
+        });
+        return {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email!,
+            isVerified: true,
+            ...newUser
+        };
+    } else {
+        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+        if (userDoc.exists()) {
+             return { 
+                uid: firebaseUser.uid,
+                email: firebaseUser.email!, 
+                isVerified: true,
+                ...userDoc.data() 
+            } as AuthUser;
+        }
+        throw new Error('No se encontraron datos de usuario para esta cuenta social.');
     }
 };
 
+
+export const loginWithGoogle = async (): Promise<AuthUser> => {
+    if (!firebaseState.isConfigured) throw new Error("La autenticación no está disponible en modo de demostración.");
+    try {
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+        const isNewUser = getAdditionalUserInfo(result)?.isNewUser || false;
+        return handleSocialLogin(result.user, isNewUser);
+    } catch (error: any) {
+        console.error("Error de inicio de sesión con Google:", error);
+        throw new Error("No se pudo iniciar sesión con Google. Inténtalo de nuevo.");
+    }
+};
+
+export const loginWithApple = async (): Promise<AuthUser> => {
+    if (!firebaseState.isConfigured) throw new Error("La autenticación no está disponible en modo de demostración.");
+    try {
+        const provider = new OAuthProvider('apple.com');
+        const result = await signInWithPopup(auth, provider);
+        const isNewUser = getAdditionalUserInfo(result)?.isNewUser || false;
+        return handleSocialLogin(result.user, isNewUser);
+    } catch (error: any) {
+        console.error("Error de inicio de sesión con Apple:", error);
+        throw new Error("No se pudo iniciar sesión con Apple. Inténtalo de nuevo.");
+    }
+};
+
+export const loginWithGithub = async (): Promise<AuthUser> => {
+    if (!firebaseState.isConfigured) throw new Error("La autenticación no está disponible en modo de demostración.");
+    try {
+        const provider = new GithubAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+        const isNewUser = getAdditionalUserInfo(result)?.isNewUser || false;
+        return handleSocialLogin(result.user, isNewUser);
+    } catch (error: any) {
+        console.error("Error de inicio de sesión con GitHub:", error);
+        if (error.code === 'auth/account-exists-with-different-credential') {
+            throw new Error("Ya existe una cuenta con este correo electrónico. Intenta iniciar sesión con otro método.");
+        }
+        throw new Error("No se pudo iniciar sesión con GitHub. Inténtalo de nuevo.");
+    }
+};
+
+
 export const loginWithEmail = async (email: string, pass: string): Promise<AuthUser> => {
+    if (!firebaseState.isConfigured) throw new Error("La autenticación no está disponible en modo de demostración.");
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, pass);
         const firebaseUser = userCredential.user;
 
-        await syncUserVerificationStatus(firebaseUser);
-
-        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+        const userDocRef = doc(db, "users", firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        
         if (userDoc.exists()) {
+            const userData = userDoc.data();
+            // Sincronizar el estado de verificación si es necesario, para mantener la consistencia.
+            if (userData.isVerified !== firebaseUser.emailVerified) {
+                await updateDoc(userDocRef, { isVerified: firebaseUser.emailVerified });
+            }
             return { 
                 uid: firebaseUser.uid,
                 email: firebaseUser.email!, 
                 isVerified: firebaseUser.emailVerified,
-                ...userDoc.data() 
+                ...userData 
             } as AuthUser;
         }
         throw new Error('No se encontraron datos de usuario asociados a esta cuenta.');
@@ -59,6 +138,7 @@ export const loginWithEmail = async (email: string, pass: string): Promise<AuthU
 };
 
 export const registerWithEmail = async (email: string, pass: string): Promise<AuthUser> => {
+    if (!firebaseState.isConfigured) throw new Error("El registro no está disponible en modo de demostración.");
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
         const firebaseUser = userCredential.user;
@@ -102,6 +182,7 @@ export const registerWithEmail = async (email: string, pass: string): Promise<Au
 };
 
 export const resendVerificationEmail = async (): Promise<void> => {
+    if (!firebaseState.isConfigured) throw new Error("La verificación no está disponible en modo de demostración.");
     const user = auth.currentUser;
     if (user) {
         await sendEmailVerification(user);
@@ -111,6 +192,7 @@ export const resendVerificationEmail = async (): Promise<void> => {
 };
 
 export const sendPasswordReset = async (email: string): Promise<void> => {
+    if (!firebaseState.isConfigured) return;
     try {
         await sendPasswordResetEmail(auth, email);
     } catch (error: any) {
@@ -122,31 +204,42 @@ export const sendPasswordReset = async (email: string): Promise<void> => {
 };
 
 export const logout = async (): Promise<void> => {
+    if (!firebaseState.isConfigured) return;
     await signOut(auth);
 };
 
 export const checkSession = (): Promise<AuthUser | null> => {
+    if (!firebaseState.isConfigured) return Promise.resolve(null);
     return new Promise((resolve) => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             unsubscribe(); 
             if (user && user.email) {
                 try {
-                    await user.reload(); // Get the latest user state
-                    await syncUserVerificationStatus(user);
+                    await user.reload(); // Obtener el estado más reciente del usuario (incl. emailVerified)
                     
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    const userDocRef = doc(db, "users", user.uid);
+                    const userDoc = await getDoc(userDocRef);
+
                     if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        
+                        // Sincronizar el estado de verificación si es necesario, sin una segunda lectura
+                        if (userData.isVerified !== user.emailVerified) {
+                            await updateDoc(userDocRef, { isVerified: user.emailVerified });
+                            userData.isVerified = user.emailVerified; // Actualizar la copia local para el retorno
+                        }
+
                         resolve({ 
                             uid: user.uid,
                             email: user.email, 
                             isVerified: user.emailVerified,
-                            ...userDoc.data() 
+                            ...userData 
                         } as AuthUser);
                     } else {
                         resolve(null);
                     }
                 } catch(e) {
-                    console.error("Error fetching user data during session check:", e);
+                    console.error("Error al obtener los datos del usuario durante la comprobación de sesión:", e);
                     resolve(null);
                 }
             } else {
@@ -157,6 +250,7 @@ export const checkSession = (): Promise<AuthUser | null> => {
 };
 
 export const getUserData = async (email: string): Promise<AuthUser> => {
+    if (!firebaseState.isConfigured) throw new Error("Los datos de usuario no están disponibles en modo de demostración.");
     const currentUser = auth.currentUser;
     if (currentUser && currentUser.email === email) {
         const userDoc = await getDoc(doc(db, "users", currentUser.uid));
@@ -173,6 +267,7 @@ export const getUserData = async (email: string): Promise<AuthUser> => {
 };
 
 export const changePlan = async (email: string, newRole: UserRole): Promise<AuthUser> => {
+    if (!firebaseState.isConfigured) throw new Error("Los planes no están disponibles en modo de demostración.");
     const currentUser = auth.currentUser;
     if (currentUser && currentUser.email === email) {
         const userDocRef = doc(db, "users", currentUser.uid);
@@ -193,9 +288,9 @@ export const changePlan = async (email: string, newRole: UserRole): Promise<Auth
 }
 
 export const getAllUsersForAdmin = async (): Promise<AuthUser[]> => {
+    if (!firebaseState.isConfigured) return [];
     const usersCol = collection(db, 'users');
     const snapshot = await getDocs(usersCol);
-    // Note: This fetches from Firestore, which now contains the synced `isVerified` status.
     return snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as AuthUser));
 };
 
@@ -209,18 +304,17 @@ const guideFromDoc = (doc: any): GeneratedProcess => {
     } as GeneratedProcess;
 };
 
-// Obtiene solo guías aprobadas para la vista pública
 export const getGuides = async (): Promise<GeneratedProcess[]> => {
+    if (!firebaseState.isConfigured) return [];
     const guidesCol = collection(db, 'guides');
 
-    // Comprueba si la colección está vacía para sembrar datos iniciales una sola vez
     const checkQuery = query(guidesCol, limit(1));
     const snapshotCheck = await getDocs(checkQuery);
     if (snapshotCheck.empty) {
         console.log("Colección 'guides' vacía. Sembrando datos iniciales de mockData.ts...");
         const batch = writeBatch(db);
         mockGuides.forEach(guide => {
-            const { id, ...guideData } = guide; // Firestore generará su propio ID
+            const { id, ...guideData } = guide;
             const newGuideRef = doc(collection(db, "guides"));
             batch.set(newGuideRef, {
                 ...guideData,
@@ -237,6 +331,7 @@ export const getGuides = async (): Promise<GeneratedProcess[]> => {
 };
 
 export const addGuide = async (guide: Omit<GeneratedProcess, 'id' | 'author' | 'status'>): Promise<GeneratedProcess> => {
+    if (!firebaseState.isConfigured) throw new Error("No se pueden añadir guías en modo de demostración.");
     const currentUser = auth.currentUser;
     if (!currentUser) throw new Error("Necesitas iniciar sesión para contribuir.");
 
@@ -258,6 +353,7 @@ export const addGuide = async (guide: Omit<GeneratedProcess, 'id' | 'author' | '
 };
 
 export const updateGuide = async (guide: GeneratedProcess): Promise<GeneratedProcess> => {
+    if (!firebaseState.isConfigured) return guide;
     const { id, ...guideData } = guide;
     const guideRef = doc(db, 'guides', id.toString());
     await updateDoc(guideRef, guideData);
@@ -265,11 +361,13 @@ export const updateGuide = async (guide: GeneratedProcess): Promise<GeneratedPro
 };
 
 export const deleteGuide = async (id: string): Promise<void> => {
+    if (!firebaseState.isConfigured) return;
     const guideRef = doc(db, 'guides', id.toString());
     await deleteDoc(guideRef);
 };
 
 export const getTopContributors = async (): Promise<{ email: string; count: number }[]> => {
+    if (!firebaseState.isConfigured) return [];
     const guidesCol = collection(db, 'guides');
     const q = query(guidesCol, where('status', '==', GuideStatus.APPROVED));
     const approvedGuidesSnapshot = await getDocs(q);
@@ -292,6 +390,7 @@ export const getTopContributors = async (): Promise<{ email: string; count: numb
 
 // --- SERVICIO DE HISTORIAL (CONECTADO A FIRESTORE) ---
 export const getHistory = async (): Promise<GeneratedProcess[]> => {
+    if (!firebaseState.isConfigured) return [];
     const currentUser = auth.currentUser;
     if (!currentUser) return [];
     
@@ -302,6 +401,7 @@ export const getHistory = async (): Promise<GeneratedProcess[]> => {
 };
 
 export const clearHistory = async (): Promise<void> => {
+    if (!firebaseState.isConfigured) return;
     const currentUser = auth.currentUser;
     if (!currentUser) return;
 
@@ -316,7 +416,7 @@ export const clearHistory = async (): Promise<void> => {
     await batch.commit();
 };
 
-// --- PROXY DEL BACKEND DE LA API DE GEMINI (AHORA GUARDA EN FIRESTORE) ---
+// --- PROXY DEL BACKEND DE LA API DE GEMINI (AHORA CON GEMINI REAL) ---
 
 export const generateProcessProxy = async (
     description: string,
@@ -324,6 +424,23 @@ export const generateProcessProxy = async (
     priority: TaskPriority,
     image: ImageFile | null
 ): Promise<GeneratedProcess> => {
+    if (!process.env.API_KEY) {
+        throw new Error("La API Key de Google no está configurada. Por favor, configúrala como Secret Key en AI Studio.");
+    }
+
+    if (!firebaseState.isConfigured) {
+        console.warn("Firebase no está configurado. Ejecutando en modo de generación de demostración sin guardado.");
+        const demoProcess: Omit<GeneratedProcess, 'id'> = {
+            taskTitle: `Guía Demo para: "${description.substring(0, 30)}..."`,
+            priority, category: TaskCategory.OTHER,
+            safetyWarnings: ["Usar equipo de protección adecuado."],
+            requiredTools: ["Herramienta de demostración 1"],
+            steps: [{ stepNumber: 1, title: "Paso de Preparación (Demo)", description: "Este es un paso generado en modo de demostración porque Firebase no está configurado." }],
+            onlineResources: [], groundingSources: [], author: 'IA', status: GuideStatus.APPROVED,
+        };
+        return { ...demoProcess, id: `demo-${Date.now()}` };
+    }
+
     const currentUser = auth.currentUser;
     if (!currentUser) throw new Error("Autenticación requerida.");
     
@@ -331,22 +448,78 @@ export const generateProcessProxy = async (
     if (currentUserData.remainingGenerations !== Infinity && currentUserData.remainingGenerations <= 0) {
         throw new Error("No te quedan generaciones. Por favor, actualiza tu plan.");
     }
+    
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+    const processSchema = {
+        type: Type.OBJECT,
+        properties: {
+            taskTitle: { type: Type.STRING, description: "Título claro y conciso para la tarea." },
+            category: { type: Type.STRING, description: `Clasifica la tarea en una de estas categorías: ${Object.values(TaskCategory).join(', ')}` },
+            safetyWarnings: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Lista de advertencias de seguridad importantes y equipo de protección personal (EPI) necesario." },
+            requiredTools: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Lista de herramientas y materiales necesarios." },
+            steps: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        stepNumber: { type: Type.INTEGER },
+                        title: { type: Type.STRING, description: "Título corto para el paso." },
+                        description: { type: Type.STRING, description: "Descripción detallada y clara del paso." }
+                    },
+                    required: ["stepNumber", "title", "description"]
+                }
+            },
+            onlineResources: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        title: { type: Type.STRING },
+                        url: { type: Type.STRING }
+                    },
+                    required: ["title", "url"]
+                }
+            }
+        },
+        required: ["taskTitle", "category", "safetyWarnings", "requiredTools", "steps", "onlineResources"]
+    };
+
+    const prompt = `Actúa como un experto en bricolaje y reparaciones. Genera una guía paso a paso detallada, segura y fácil de seguir para la siguiente tarea.
+    - Tarea: ${description}
+    - Complejidad deseada: ${complexity}
+    - Prioridad: ${priority}
+    
+    Devuelve la guía en formato JSON, siguiendo estrictamente el esquema proporcionado. Asegúrate de que los pasos sean lógicos y secuenciales. Las advertencias de seguridad deben ser relevantes y prioritarias.`;
+
+    const contents = [];
+    if (image) {
+        contents.push({ inlineData: { mimeType: image.mimeType, data: image.base64 }});
+    }
+    contents.push({ text: prompt });
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-pro',
+        contents: { parts: contents },
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: processSchema,
+            tools: [{ googleSearch: {} }]
+        },
+    });
+
+    const parsedJson = JSON.parse(response.text);
+    const groundingSources: GroundingSource[] = response.candidates?.[0]?.groundingMetadata?.groundingChunks
+        ?.map((chunk: any) => ({
+            title: chunk.web?.title || 'Fuente de Google',
+            url: chunk.web?.uri || '#',
+        })) || [];
+
 
     const newProcessData: Omit<GeneratedProcess, 'id'> = {
-        taskTitle: `Guía generada por IA para: "${description.substring(0, 30)}..."`,
+        ...parsedJson,
         priority,
-        category: Object.values(TaskCategory)[Math.floor(Math.random() * Object.values(TaskCategory).length)],
-        safetyWarnings: ["Usar equipo de protección personal (EPIs).", "Trabajar en un área bien ventilada.", "Desconectar la alimentación antes de empezar."],
-        requiredTools: ["Herramienta A", "Material B", "Componente C"],
-        steps: [
-            { stepNumber: 1, title: "Preparación del área de trabajo", description: "Limpia y organiza el espacio donde realizarás la tarea para evitar accidentes." },
-            { stepNumber: 2, title: "Inspección inicial", description: "Revisa el objeto o sistema para evaluar el alcance del trabajo. Si subiste una imagen, se habría analizado aquí." },
-            { stepNumber: 3, title: "Ejecución del paso principal", description: `Este es el paso clave relacionado con la complejidad ${complexity} y la descripción dada.` },
-            { stepNumber: 4, title: "Verificación y pruebas", description: "Comprueba que la tarea se ha completado correctamente y que todo funciona como se esperaba." },
-            { stepNumber: 5, title: "Limpieza final", description: "Recoge todas las herramientas y desecha los residuos de forma adecuada." }
-        ],
-        onlineResources: [{ title: "Documentación técnica relacionada", url: "https://www.google.com" }],
-        groundingSources: [{ title: "Web de referencia para la generación", url: "https://www.wikipedia.org" }],
+        groundingSources,
         author: 'IA',
         authorEmail: 'ia@tutorial-2.0.app',
         authorId: 'gemini-ia-system',
@@ -369,14 +542,34 @@ export const generateProcessProxy = async (
 };
 
 export const describeMediaProxy = async (mediaFile: ImageFile): Promise<{ description: string }> => {
-    const mediaType = mediaFile.mimeType.startsWith('image') ? 'imagen' : 'vídeo';
-    return {
-        description: `Análisis de ${mediaType}: Se observa un objeto que requiere mantenimiento. Parece ser un ${mediaFile.name.split('.').shift()}. La tarea principal parece ser reparar o reemplazar una pieza central.`
-    };
+     if (!process.env.API_KEY) throw new Error("La API Key de Google no está configurada.");
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    const prompt = "Describe en una frase corta la tarea principal que se muestra en esta imagen/vídeo, desde la perspectiva de una guía 'cómo hacer'. Por ejemplo: 'Cambiar una rueda pinchada de un coche'.";
+    
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: { parts: [
+            { inlineData: { mimeType: mediaFile.mimeType, data: mediaFile.base64 } },
+            { text: prompt }
+        ]},
+    });
+
+    return { description: response.text };
 };
 
 export const refineStepProxy = async (taskTitle: string, stepToRefine: ProcessStep): Promise<{ newDescription: string }> => {
-    return {
-        newDescription: `${stepToRefine.description} (Refinado por IA) Para realizar este paso con mayor precisión, asegúrate de utilizar la herramienta adecuada y aplicar una presión constante. Considera ver un tutorial en vídeo si no estás seguro.`
-    };
+    if (!process.env.API_KEY) throw new Error("La API Key de Google no está configurada.");
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+    const prompt = `Dentro de la guía "${taskTitle}", necesito refinar un paso. 
+    Paso a refinar: "${stepToRefine.title}: ${stepToRefine.description}".
+    Por favor, re-escribe la descripción de este paso para que sea más detallada, clara y fácil de entender para un principiante. No incluyas el título del paso, solo la nueva descripción.`;
+    
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt
+    });
+
+    return { newDescription: response.text };
 };

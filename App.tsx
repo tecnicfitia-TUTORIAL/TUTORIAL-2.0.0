@@ -1,307 +1,281 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { UserRole, GeneratedProcess, ImageFile, AuthUser, TaskPriority, TaskComplexity } from './types';
-import Header from './components/Header';
+import React, { useState, useEffect } from 'react';
 import { TaskInputForm } from './components/TaskInputForm';
 import { ProcessOutput } from './components/ProcessOutput';
 import { HistorySidebar } from './components/HistorySidebar';
-import { generateTaskProcess } from './services/geminiService';
-import * as apiService from './services/apiService';
-import { SpinnerIcon } from './components/icons';
+import { GuestView } from './components/GuestView';
 import { LoginModal, AuthView } from './components/LoginModal';
 import { AccountModal } from './components/AccountModal';
-import { CollaboratorView } from './components/CollaboratorView';
-import { HallOfFameView } from './components/HallOfFameView';
-import { AdminView } from './components/AdminView';
-import { CommunityView } from './components/CommunityView';
 import { ManagePlanModal } from './components/ManagePlanModal';
-import { VerificationBanner } from './components/VerificationBanner';
 import { FeedbackModal } from './components/FeedbackModal';
+import Header from './components/Header';
+import { VerificationBanner } from './components/VerificationBanner';
+import { CommunityView } from './components/CommunityView';
+import { CollaboratorView } from './components/CollaboratorView';
+import { AdminView } from './components/AdminView';
+import { HallOfFameView } from './components/HallOfFameView';
 
-type ActiveView = 'generate' | 'community' | 'contribute' | 'halloffame' | 'admin';
+import { AuthUser, GeneratedProcess, ImageFile, TaskComplexity, TaskPriority, UserRole } from './types';
+import * as geminiService from './services/geminiService';
+import * as apiService from './services/apiService';
+import { firebaseState } from './services/firebase';
 
 const App: React.FC = () => {
-  const [appStatus, setAppStatus] = useState<'loading' | 'ready'>('loading');
-  const [user, setUser] = useState<AuthUser | null>(null);
+    const [user, setUser] = useState<AuthUser | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isGenerating, setIsGenerating] = useState<boolean>(false);
+    const [generatedProcess, setGeneratedProcess] = useState<GeneratedProcess | null>(null);
+    const [generationError, setGenerationError] = useState<string | null>(null);
 
-  const [generatedProcess, setGeneratedProcess] = useState<GeneratedProcess | null>(null);
-  const [taskHistory, setTaskHistory] = useState<GeneratedProcess[]>([]);
-  
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [authModalView, setAuthModalView] = useState<AuthView>('login');
-  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
-  const [isManagePlanModalOpen, setIsManagePlanModalOpen] = useState(false);
-  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
-  
-  const [activeView, setActiveView] = useState<ActiveView>('community');
-  
-  const [verificationBannerMessage, setVerificationBannerMessage] = useState<string | null>(null);
-
-  const checkUserSession = useCallback(async () => {
-    try {
-      const sessionUser = await apiService.checkSession();
-      setUser(sessionUser);
-      if (sessionUser) {
-        const history = await apiService.getHistory();
-        setTaskHistory(history);
-        if (activeView !== 'admin' && activeView !== 'contribute') {
-            setActiveView('generate');
-        }
-      } else {
-        setActiveView('community');
-      }
-    } catch (error) {
-      console.error("Error al inicializar la sesión:", error);
-      setActiveView('community');
-    } finally {
-      setAppStatus('ready');
-    }
-  }, [activeView]);
-
-  useEffect(() => {
-    checkUserSession();
-  }, [checkUserSession]);
-
-  const handleOpenAuthModal = (view: AuthView) => {
-    setAuthModalView(view);
-    setIsLoginModalOpen(true);
-  };
-  
-  const handleLoginSuccess = useCallback(async (loggedInUser: AuthUser) => {
-    setUser(loggedInUser);
-    try {
-        const history = await apiService.getHistory();
-        setTaskHistory(history);
-        setActiveView('generate');
-    } catch(e) {
-        console.error("Failed to fetch history after login", e);
-    }
-    setIsLoginModalOpen(false);
-  }, []);
-
-  const handleProcessUpdate = async (updatedProcess: GeneratedProcess) => {
-    setGeneratedProcess(updatedProcess);
-    await apiService.updateGuide(updatedProcess);
-    setTaskHistory(prevHistory => 
-      prevHistory.map(item => item.id === updatedProcess.id ? updatedProcess : item)
-    );
-  };
-  
-  const handleContribute = async (guideData: Omit<GeneratedProcess, 'id' | 'author' | 'status'>) => {
-      try {
-          await apiService.addGuide(guideData);
-          setActiveView('community');
-      } catch (error) {
-          console.error("Error al contribuir con la guía:", error);
-          setError("No se pudo enviar tu guía. Inténtalo de nuevo.");
-      }
-  };
-
-  const handleProcessGeneration = useCallback(async (
-    description: string,
-    complexity: TaskComplexity,
-    priority: TaskPriority,
-    image: ImageFile | null
-  ) => {
-    if (!user) return;
-
-    setIsLoading(true);
-    setError(null);
-    setGeneratedProcess(null);
+    // Modal states
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+    const [isManagePlanModalOpen, setIsManagePlanModalOpen] = useState(false);
+    const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+    const [authModalView, setAuthModalView] = useState<AuthView>('login');
     
-    try {
-      const process = await generateTaskProcess(description, complexity, priority, image);
-      setGeneratedProcess(process);
-      
-      const updatedHistory = await apiService.getHistory();
-      setTaskHistory(updatedHistory);
-      
-      const updatedUser = await apiService.getUserData(user.email);
-      setUser(updatedUser);
+    // Feature states
+    const [history, setHistory] = useState<GeneratedProcess[]>([]);
+    const [activeView, setActiveView] = useState<'generate' | 'community' | 'contribute' | 'halloffame' | 'admin'>('generate');
+    const [verificationMessage, setVerificationMessage] = useState<string | null>(null);
+    const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+    
+    const firebaseReady = firebaseState.isConfigured;
 
-    } catch (e) {
-      if (e instanceof Error) {
-        setError(e.message);
-      } else {
-        setError("Ha ocurrido un error inesperado.");
+    useEffect(() => {
+        const checkUserSession = async () => {
+            setIsLoading(true);
+            try {
+                const sessionUser = await apiService.checkSession();
+                setUser(sessionUser);
+                if (sessionUser) {
+                    const userHistory = await apiService.getHistory();
+                    setHistory(userHistory);
+                }
+            } catch (error) {
+                console.error("Error al comprobar la sesión:", error);
+                setUser(null);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        checkUserSession();
+    }, [firebaseReady]);
+    
+    useEffect(() => {
+      let intervalId: number;
+      if (user && !user.isVerified) {
+        // Periodically check verification status in case the user verifies in another tab
+        intervalId = window.setInterval(async () => {
+          const updatedUser = await apiService.checkSession();
+          if (updatedUser?.isVerified) {
+            setUser(updatedUser);
+          }
+        }, 30000); // Check every 30 seconds
       }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
+      return () => clearInterval(intervalId);
+    }, [user]);
 
-  const handleSelectHistoryItem = useCallback((id: string) => {
-    const selectedProcess = taskHistory.find(item => item.id === id);
-    if (selectedProcess) {
-        setGeneratedProcess(selectedProcess);
-        setError(null);
-        setActiveView('generate');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [taskHistory]);
+    const handleGenerate = async (description: string, complexity: TaskComplexity, priority: TaskPriority, image: ImageFile | null) => {
+        setIsGenerating(true);
+        setGenerationError(null);
+        setGeneratedProcess(null);
+        setActiveTaskId(null);
 
-  const handleClearHistory = useCallback(async () => {
-      await apiService.clearHistory();
-      setTaskHistory([]);
-      setGeneratedProcess(null);
-  }, []);
-  
-  const handleLogout = async () => {
-    await apiService.logout();
-    setUser(null);
-    setIsAccountModalOpen(false);
-    setTaskHistory([]);
-    setGeneratedProcess(null);
-    setActiveView('community');
-  };
-  
-  const handlePlanChange = async (newRole: UserRole) => {
-      if(user) {
-        const updatedUser = await apiService.changePlan(user.email, newRole);
-        setUser(updatedUser);
+        try {
+            const process = await geminiService.generateTaskProcess(description, complexity, priority, image);
+            setGeneratedProcess(process);
+
+            // Update user's remaining generations and history
+            if (user) {
+                const updatedUser = await apiService.getUserData(user.email);
+                setUser(updatedUser);
+                setHistory(prev => [process, ...prev]);
+            }
+
+        } catch (error) {
+            console.error("Error al generar el proceso:", error);
+            if (error instanceof Error) {
+                setGenerationError(error.message);
+            } else {
+                setGenerationError("Ocurrió un error desconocido.");
+            }
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+    
+    const handleLoginSuccess = async (loggedInUser: AuthUser) => {
+        setUser(loggedInUser);
+        setIsAuthModalOpen(false);
+        try {
+            const userHistory = await apiService.getHistory();
+            setHistory(userHistory);
+        } catch (error) {
+            console.error("Error al cargar el historial del usuario:", error);
+            setHistory([]);
+        }
+    };
+
+    const handleLogout = async () => {
+        await apiService.logout();
+        setUser(null);
+        setHistory([]);
+        setGeneratedProcess(null);
+        setIsAccountModalOpen(false);
+        setActiveView('generate'); // Reset to default view on logout
+    };
+
+    const handleOpenAuthModal = (view: AuthView) => {
+        setAuthModalView(view);
+        setIsAuthModalOpen(true);
+    };
+    
+    const closeAllModals = () => {
+        setIsAuthModalOpen(false);
+        setIsAccountModalOpen(false);
         setIsManagePlanModalOpen(false);
-      }
-  };
+        setIsFeedbackModalOpen(false);
+    };
 
-  const handleResendVerification = async () => {
-      try {
-          await apiService.resendVerificationEmail();
-          setVerificationBannerMessage("¡Correo reenviado! Revisa tu bandeja de entrada.");
-          setTimeout(() => setVerificationBannerMessage(null), 4000);
-      } catch (error) {
-          console.error(error);
-          setVerificationBannerMessage("Error al reenviar el correo. Inténtalo de nuevo más tarde.");
-          setTimeout(() => setVerificationBannerMessage(null), 4000);
+    const handleContribute = async (guide: Omit<GeneratedProcess, 'id' | 'author' | 'status'>) => {
+        try {
+            await apiService.addGuide(guide);
+            // Optionally, switch view or give feedback
+        } catch(error) {
+            console.error("Error al contribuir con la guía:", error);
+            // Optionally, show error to user
+        }
+    };
+    
+    const handleSelectFromHistory = (id: string) => {
+      const selectedProcess = history.find(item => item.id === id);
+      if (selectedProcess) {
+        setGeneratedProcess(selectedProcess);
+        setGenerationError(null);
+        setIsGenerating(false);
+        setActiveView('generate');
+        setActiveTaskId(id);
       }
-  };
-  
-  const handleManagePlan = () => {
-    setIsAccountModalOpen(false);
-    setIsManagePlanModalOpen(true);
-  };
+    };
 
-  const GenerationView: React.FC = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      <aside className="lg:col-span-3 lg:sticky lg:top-28">
-        <HistorySidebar
-          history={taskHistory}
-          onSelectItem={handleSelectHistoryItem}
-          onClearHistory={handleClearHistory}
-          activeTaskId={generatedProcess?.id ?? null}
-        />
-      </aside>
-      <div className="lg:col-span-9 grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-        <div className="xl:sticky xl:top-28">
-         {user && <TaskInputForm
-            userRole={user.role}
-            onSubmit={handleProcessGeneration}
-            isLoading={isLoading}
-            remainingGenerations={user.remainingGenerations}
-          />}
-        </div>
-        <div className="min-h-[400px]">
-          <ProcessOutput
-            process={generatedProcess}
-            isLoading={isLoading}
-            error={error}
-            onProcessUpdate={handleProcessUpdate}
-          />
-        </div>
-      </div>
-    </div>
-  );
-  
-  const renderActiveView = () => {
-      switch (activeView) {
-          case 'generate':
-              return <GenerationView />;
-          case 'community':
-              return <CommunityView 
-                onSelectGuide={(guide) => {
-                    setGeneratedProcess(guide);
-                    setActiveView('generate');
-                }} 
-                onAuthRequest={handleOpenAuthModal}
-              />;
-          case 'contribute':
-             if (!user || ![UserRole.COLLABORATOR, UserRole.ADMINISTRATOR].includes(user.role)) {
+    const handleClearHistory = async () => {
+      if (confirm("¿Estás seguro de que quieres borrar todo tu historial? Esta acción no se puede deshacer.")) {
+        await apiService.clearHistory();
+        setHistory([]);
+        if (generatedProcess && history.some(h => h.id === generatedProcess.id)) {
+            setGeneratedProcess(null);
+        }
+      }
+    };
+    
+    const handleChangePlan = async (newRole: UserRole) => {
+        if(user) {
+            const updatedUser = await apiService.changePlan(user.email, newRole);
+            setUser(updatedUser);
+            setIsManagePlanModalOpen(false); // Close plan modal after change
+        }
+    };
+    
+    const handleResendVerification = async () => {
+        try {
+            await apiService.resendVerificationEmail();
+            setVerificationMessage("¡Correo de verificación reenviado! Revisa tu bandeja de entrada.");
+             setTimeout(() => setVerificationMessage(null), 5000);
+        } catch (error) {
+            setVerificationMessage("Error al reenviar el correo. Inténtalo de nuevo más tarde.");
+            setTimeout(() => setVerificationMessage(null), 5000);
+        }
+    };
+    
+    const handleNavigate = (view: 'generate' | 'community' | 'contribute' | 'halloffame' | 'admin') => {
+        setGeneratedProcess(null);
+        setGenerationError(null);
+        setActiveTaskId(null);
+        setActiveView(view);
+    };
+
+    const handleSelectGuideFromCommunity = (guide: GeneratedProcess) => {
+        setGeneratedProcess(guide);
+        setActiveView('generate');
+    };
+    
+    const renderActiveView = () => {
+        switch (activeView) {
+            case 'generate':
                 return (
-                    <div className="text-center p-8 text-gray-400">
-                        <h2 className="text-xl font-bold text-white">Acceso Restringido</h2>
-                        <p>Debes ser un Colaborador para acceder a esta página.</p>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                        <div className="lg:col-span-1 space-y-8">
+                            {firebaseReady && <HistorySidebar history={history} onSelectItem={handleSelectFromHistory} onClearHistory={handleClearHistory} activeTaskId={activeTaskId} />}
+                            <TaskInputForm
+                                userRole={user!.role}
+                                onSubmit={handleGenerate}
+                                isLoading={isGenerating}
+                                remainingGenerations={user!.remainingGenerations}
+                            />
+                        </div>
+                        <div className="lg:col-span-2">
+                            <ProcessOutput
+                                process={generatedProcess}
+                                isLoading={isGenerating}
+                                error={generationError}
+                                onProcessUpdate={setGeneratedProcess}
+                            />
+                        </div>
                     </div>
                 );
-            }
-            return <CollaboratorView onContribute={handleContribute} />;
-          case 'halloffame':
-              return <HallOfFameView onBack={() => setActiveView('community')} />;
-          case 'admin':
-              return user?.role === UserRole.ADMINISTRATOR ? <AdminView /> : (
-                 <div className="text-center p-8 text-gray-400">
-                    <h2 className="text-xl font-bold text-white">Acceso Denegado</h2>
-                    <p>Esta sección es solo para administradores.</p>
-                </div>
-              );
-          default:
-              return <CommunityView 
-                onSelectGuide={(guide) => {
-                    setGeneratedProcess(guide);
-                    setActiveView('generate');
-                }} 
-                onAuthRequest={handleOpenAuthModal}
-              />;
-      }
-  };
-  
-  if (appStatus === 'loading') {
+            case 'community':
+                return <CommunityView onSelectGuide={handleSelectGuideFromCommunity} onAuthRequest={handleOpenAuthModal} />;
+            case 'contribute':
+                return <CollaboratorView onContribute={handleContribute} />;
+            case 'halloffame':
+                return <HallOfFameView onBack={() => handleNavigate('generate')} />;
+            case 'admin':
+                return <AdminView />;
+            default:
+                return null;
+        }
+    };
+
+    if (isLoading) {
+        return <div className="h-screen w-screen flex items-center justify-center bg-gray-900"><div className="animate-spin rounded-full h-16 w-16 border-b-2 border-cyan-400"></div></div>;
+    }
+
     return (
-        <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center text-white">
-            <SpinnerIcon className="w-12 h-12 text-cyan-500" />
-            <p className="mt-4 text-lg">Cargando aplicación...</p>
+        <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
+            {!firebaseReady && (
+                <div className="bg-yellow-600/90 text-center text-white p-2 text-sm shadow-lg">
+                    <strong>MODO DE DEMOSTRACIÓN:</strong> La aplicación se está ejecutando sin conexión. Para habilitar el guardado, el historial y las cuentas de usuario, por favor, <a href="https://github.com/google/aistudio-apps/blob/main/TUTORIAL%202.0/README.md" target="_blank" rel="noopener noreferrer" className="underline hover:text-cyan-200">configura tus claves de API de Firebase</a>.
+                </div>
+            )}
+            
+            <Header 
+                user={user} 
+                activeView={activeView}
+                onOpenAuthModal={handleOpenAuthModal} 
+                onLogout={handleLogout} 
+                onAccount={() => setIsAccountModalOpen(true)}
+                onNavigate={handleNavigate}
+            />
+
+            {user && !user.isVerified && <VerificationBanner onResend={handleResendVerification} message={verificationMessage}/>}
+            
+            <main className="container mx-auto p-4 sm:p-8 flex-grow">
+                {user ? renderActiveView() : <GuestView onLogin={() => handleOpenAuthModal('register')} />}
+            </main>
+
+            <footer className="bg-gray-800/50 border-t border-gray-700/50 mt-auto">
+                <div className="container mx-auto p-4 text-center text-xs text-gray-500 flex justify-between items-center">
+                   <span>&copy; {new Date().getFullYear()} TUTORIAL 2.0 - Creado con Google AI Studio</span>
+                   <button onClick={() => setIsFeedbackModalOpen(true)} className="hover:text-cyan-400 hover:underline">Enviar Sugerencias</button>
+                </div>
+            </footer>
+
+            {isAuthModalOpen && <LoginModal onClose={closeAllModals} onLoginSuccess={handleLoginSuccess} initialView={authModalView} />}
+            {user && isAccountModalOpen && <AccountModal user={user} onClose={closeAllModals} onLogout={handleLogout} onManagePlan={() => { setIsAccountModalOpen(false); setIsManagePlanModalOpen(true); }} />}
+            {user && isManagePlanModalOpen && <ManagePlanModal user={user} onClose={closeAllModals} onChangePlan={handleChangePlan}/>}
+            {isFeedbackModalOpen && <FeedbackModal onClose={closeAllModals} />}
         </div>
     );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-900">
-      <Header 
-          user={user}
-          activeView={activeView}
-          onOpenAuthModal={handleOpenAuthModal}
-          onLogout={handleLogout}
-          onAccount={() => setIsAccountModalOpen(true)}
-          onNavigate={setActiveView}
-      />
-      {user && !user.isVerified && <VerificationBanner onResend={handleResendVerification} message={verificationBannerMessage} />}
-      <main className="container mx-auto p-4 md:p-8">
-        {renderActiveView()}
-      </main>
-      <footer className="text-center p-6 text-gray-500 text-sm border-t border-gray-800 space-y-2 mt-8">
-        <p>&copy; {new Date().getFullYear()} TUTORIAL 2.0. Todos los derechos reservados. | <button onClick={() => setIsFeedbackModalOpen(true)} className="text-cyan-400 hover:underline">Enviar Sugerencia</button></p>
-        <p className="text-xs text-gray-600">Desarrollado con Gemini API. Los procesos generados son sugerencias y deben seguirse con precaución.</p>
-      </footer>
-      
-      {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} onLoginSuccess={handleLoginSuccess} initialView={authModalView} />}
-      {isAccountModalOpen && user && (
-        <AccountModal 
-            user={user} 
-            onClose={() => setIsAccountModalOpen(false)} 
-            onLogout={handleLogout}
-            onManagePlan={handleManagePlan}
-        />
-      )}
-      {isManagePlanModalOpen && user && (
-        <ManagePlanModal 
-          user={user}
-          onClose={() => setIsManagePlanModalOpen(false)}
-          onChangePlan={handlePlanChange}
-        />
-      )}
-      {isFeedbackModalOpen && <FeedbackModal onClose={() => setIsFeedbackModalOpen(false)} />}
-    </div>
-  );
 };
 
 export default App;
