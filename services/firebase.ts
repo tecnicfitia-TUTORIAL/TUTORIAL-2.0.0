@@ -2,14 +2,14 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// Your web app's Firebase configuration
+// La configuración de Firebase ahora se carga desde variables de entorno seguras.
 const firebaseConfig = {
-  apiKey: "AIzaSyBJMnJ_HTT4BfI16MFufj8aIsQFUA-0cso",
-  authDomain: "tutorioa.firebaseapp.com",
-  projectId: "tutorioa",
-  storageBucket: "tutorioa.appspot.com",
-  messagingSenderId: "999998653049",
-  appId: "1:999998653049:web:12486001ac50920efa0aa8"
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID
 };
 
 interface FirebaseState {

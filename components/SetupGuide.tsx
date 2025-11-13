@@ -4,13 +4,13 @@ import { KeyIcon, AlertTriangleIcon } from './icons';
 const SetupGuide: React.FC = () => {
 
     const envVars = [
-        { name: 'API_KEY', value: 'AIzaSyDV1EYpOJ6MQf1uje3rrSBxotUmJzwNTj0', source: 'Google AI Studio', description: 'Tu clave de API de Gemini' },
-        { name: 'AIzaSyBJMnJ_HTT4BfI16MFufj8aIsQFUA-0cso', placeholder: 'tu-api-key-de-firebase' },
-        { name: 'tutorioa.firebaseapp.com', placeholder: 'tu-proyecto.firebaseapp.com' },
-        { name: 'tutorioa', placeholder: 'tu-id-de-proyecto' },
-        { name: 'tutorioa.firebasestorage.app', placeholder: 'tu-proyecto.appspot.com' },
-        { name: '999998653049', placeholder: 'tu-sender-id' },
-        { name: '1:999998653049:web:12486001ac50920efa0aa8', placeholder: 'tu-app-id' },
+        { name: 'API_KEY', description: 'Tu clave de API de Gemini de Google AI Studio.' },
+        { name: 'FIREBASE_API_KEY', description: 'El "apiKey" de la configuración de tu aplicación web de Firebase.' },
+        { name: 'FIREBASE_AUTH_DOMAIN', description: 'El "authDomain" de Firebase.' },
+        { name: 'FIREBASE_PROJECT_ID', description: 'El "projectId" de Firebase.' },
+        { name: 'FIREBASE_STORAGE_BUCKET', description: 'El "storageBucket" de Firebase.' },
+        { name: 'FIREBASE_MESSAGING_SENDER_ID', description: 'El "messagingSenderId" de Firebase.' },
+        { name: 'FIREBASE_APP_ID', description: 'El "appId" de Firebase para tu aplicación web.' },
     ];
 
     return (
@@ -79,10 +79,15 @@ const SetupGuide: React.FC = () => {
                     <div className="flex-1">
                         <h2 className="text-xl font-semibold text-cyan-400 mb-2">Configura las "Secret Keys" en AI Studio</h2>
                         <p className="text-gray-300 mb-4">
-                            En el panel de AI Studio, ve a la sección de "Secret Keys" y añade las siguientes claves con los valores que copiaste de Firebase:
+                            En el panel de AI Studio, ve a la sección de "Secret Keys" y añade las siguientes claves con los valores que copiaste de Google AI Studio y Firebase:
                         </p>
-                        <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 font-mono text-sm text-gray-300 space-y-2">
-                            {envVars.map(v => <div key={v.name}>{v.name} = "{v.placeholder}"</div>)}
+                        <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 font-mono text-sm text-gray-300 space-y-3">
+                           {envVars.map(v => (
+                                <div key={v.name}>
+                                    <p className="text-cyan-400">{v.name}</p>
+                                    <p className="text-gray-500 text-xs pl-2">// {v.description}</p>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
