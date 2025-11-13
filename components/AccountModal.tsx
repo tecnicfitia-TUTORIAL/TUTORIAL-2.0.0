@@ -9,7 +9,7 @@ interface AccountModalProps {
   onManagePlan: () => void;
 }
 
-export const AccountModal: React.FC<AccountModalProps> = ({ user, onClose, onLogout, onManagePlan }) => {
+const AccountModal: React.FC<AccountModalProps> = ({ user, onClose, onLogout, onManagePlan }) => {
 
   const planBenefits = {
     [UserRole.BASIC]: ["10 generaciones/mes", "Acceso a guías de la comunidad"],
@@ -60,3 +60,5 @@ export const AccountModal: React.FC<AccountModalProps> = ({ user, onClose, onLog
     </div>
   );
 };
+
+export default AccountModal;

@@ -11,7 +11,7 @@ interface LoginModalProps {
   initialView?: AuthView;
 }
 
-export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onLoginSuccess, initialView = 'login' }) => {
+const LoginModal: React.FC<LoginModalProps> = ({ onClose, onLoginSuccess, initialView = 'login' }) => {
   const [view, setView] = useState<AuthView>(initialView);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -241,3 +241,5 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onLoginSuccess,
     </div>
   );
 };
+
+export default LoginModal;

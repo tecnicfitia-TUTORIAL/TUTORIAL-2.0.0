@@ -6,7 +6,7 @@ interface FeedbackModalProps {
     onClose: () => void;
 }
 
-export const FeedbackModal: React.FC<FeedbackModalProps> = ({ onClose }) => {
+const FeedbackModal: React.FC<FeedbackModalProps> = ({ onClose }) => {
     const [subject, setSubject] = useState('');
     const [message, setMessage] = useState('');
     const [fromEmail, setFromEmail] = useState('');
@@ -125,3 +125,5 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ onClose }) => {
         </div>
     );
 };
+
+export default FeedbackModal;

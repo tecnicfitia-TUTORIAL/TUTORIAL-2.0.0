@@ -3,13 +3,9 @@ import { TaskInputForm } from './components/TaskInputForm';
 import { ProcessOutput } from './components/ProcessOutput';
 import { HistorySidebar } from './components/HistorySidebar';
 import { GuestView } from './components/GuestView';
-import { LoginModal, AuthView } from './components/LoginModal';
-import { AccountModal } from './components/AccountModal';
-import { ManagePlanModal } from './components/ManagePlanModal';
-import { FeedbackModal } from './components/FeedbackModal';
-import Header from './components/Header';
+import type { AuthView } from './components/LoginModal';
 import { VerificationBanner } from './components/VerificationBanner';
-import { SpinnerIcon } from './components/icons';
+import Header from './components/Header';
 
 import { AuthUser, GeneratedProcess, ImageFile, TaskComplexity, TaskPriority, UserRole } from './types';
 import * as geminiService from './services/geminiService';
@@ -21,6 +17,13 @@ const CommunityView = lazy(() => import('./components/CommunityView'));
 const CollaboratorView = lazy(() => import('./components/CollaboratorView'));
 const AdminView = lazy(() => import('./components/AdminView'));
 const HallOfFameView = lazy(() => import('./components/HallOfFameView'));
+
+// Lazy load modals for code splitting
+const LoginModal = lazy(() => import('./components/LoginModal'));
+const AccountModal = lazy(() => import('./components/AccountModal'));
+const ManagePlanModal = lazy(() => import('./components/ManagePlanModal'));
+const FeedbackModal = lazy(() => import('./components/FeedbackModal'));
+
 
 const App: React.FC = () => {
     const [user, setUser] = useState<AuthUser | null>(null);
@@ -280,11 +283,13 @@ const App: React.FC = () => {
                    <button onClick={() => setIsFeedbackModalOpen(true)} className="hover:text-cyan-400 hover:underline">Enviar Sugerencias</button>
                 </div>
             </footer>
-
-            {isAuthModalOpen && <LoginModal onClose={closeAllModals} onLoginSuccess={handleLoginSuccess} initialView={authModalView} />}
-            {user && isAccountModalOpen && <AccountModal user={user} onClose={closeAllModals} onLogout={handleLogout} onManagePlan={() => { setIsAccountModalOpen(false); setIsManagePlanModalOpen(true); }} />}
-            {user && isManagePlanModalOpen && <ManagePlanModal user={user} onClose={closeAllModals} onChangePlan={handleChangePlan}/>}
-            {isFeedbackModalOpen && <FeedbackModal onClose={closeAllModals} />}
+            
+            <Suspense fallback={<div />}>
+                {isAuthModalOpen && <LoginModal onClose={closeAllModals} onLoginSuccess={handleLoginSuccess} initialView={authModalView} />}
+                {user && isAccountModalOpen && <AccountModal user={user} onClose={closeAllModals} onLogout={handleLogout} onManagePlan={() => { setIsAccountModalOpen(false); setIsManagePlanModalOpen(true); }} />}
+                {user && isManagePlanModalOpen && <ManagePlanModal user={user} onClose={closeAllModals} onChangePlan={handleChangePlan}/>}
+                {isFeedbackModalOpen && <FeedbackModal onClose={closeAllModals} />}
+            </Suspense>
         </div>
     );
 };

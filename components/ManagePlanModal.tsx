@@ -103,7 +103,7 @@ const PlanCard: React.FC<{
 };
 
 
-export const ManagePlanModal: React.FC<ManagePlanModalProps> = ({ user, onClose, onChangePlan }) => {
+const ManagePlanModal: React.FC<ManagePlanModalProps> = ({ user, onClose, onChangePlan }) => {
     return (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
             <div className="bg-gray-900/80 backdrop-blur-md border border-gray-700 rounded-lg shadow-xl p-8 w-full max-w-5xl m-4 relative animate-fade-in" onClick={e => e.stopPropagation()}>
@@ -136,3 +136,5 @@ export const ManagePlanModal: React.FC<ManagePlanModalProps> = ({ user, onClose,
         </div>
     );
 };
+
+export default ManagePlanModal;
