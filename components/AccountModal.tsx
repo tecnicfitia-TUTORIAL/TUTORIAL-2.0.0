@@ -13,7 +13,7 @@ const AccountModal: React.FC<AccountModalProps> = ({ user, onClose, onLogout, on
 
   const planBenefits = {
     [UserRole.BASIC]: ["10 generaciones/mes", "Acceso a guías de la comunidad"],
-    [UserRole.STANDARD]: ["50 generaciones/mes", "Acceso a guías de la comunidad", "Aportar guías"],
+    [UserRole.TEAM]: ["Para hasta 4 usuarios", "100 generaciones IA/mes (compartidas)", "Historial de equipo", "Colaboración en guías"],
     [UserRole.PRO]: ["Generaciones ilimitadas", "Soporte para imágenes y vídeos", "Acceso prioritario a betas"],
     [UserRole.COLLABORATOR]: ["Beneficios de Pro", "Acceso al portal de colaborador"],
     [UserRole.ADMINISTRATOR]: ["Acceso total al sistema"],

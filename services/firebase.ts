@@ -1,22 +1,15 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, initializeFirestore, memoryLocalCache } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 
-// ---
-// NOTA IMPORTANTE PARA EL USUARIO:
-// Para que la aplicación se conecte a TU proyecto de Firebase,
-// debes configurar las siguientes variables de entorno en tu entorno de Google AI Studio.
-// Ve a la configuración de tu proyecto de Firebase, busca la configuración de tu aplicación web
-// y copia los valores correspondientes en las "Secret Keys" de AI Studio.
-// Ejemplo: FIREBASE_API_KEY = "tu-api-key-de-firebase"
-// ---
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID
+  apiKey: "AIzaSyBJMnJ_HTT4BfI16MFufj8aIsQFUA-0cso",
+  authDomain: "tutorioa.firebaseapp.com",
+  projectId: "tutorioa",
+  storageBucket: "tutorioa.appspot.com",
+  messagingSenderId: "999998653049",
+  appId: "1:999998653049:web:12486001ac50920efa0aa8"
 };
 
 interface FirebaseState {
@@ -26,7 +19,7 @@ interface FirebaseState {
 
 // Export a state object that the UI can use to react to initialization problems.
 export const firebaseState: FirebaseState = {
-    isConfigured: !!(firebaseConfig.apiKey && firebaseConfig.projectId),
+    isConfigured: Object.values(firebaseConfig).every(value => value),
     error: null,
 };
 
@@ -37,17 +30,10 @@ if (firebaseState.isConfigured) {
         // Patrón Singleton para evitar reinicializar la app en recargas en caliente
         app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-        // Inicializar Firestore, deshabilitando explícitamente la persistencia (modo offline)
-        // para evitar problemas de compatibilidad en este entorno.
-        try {
-            db = initializeFirestore(app, {
-                localCache: memoryLocalCache({})
-            });
-        } catch (e: any) {
-            console.error("Error al inicializar Firestore sin persistencia, volviendo a la instancia por defecto.", e);
-            db = getFirestore(app);
-        }
-
+        // Inicializar servicios de Firebase
+        // Se utiliza la inicialización por defecto. Firestore habilitará la persistencia
+        // offline por defecto, lo cual es generalmente deseable.
+        db = getFirestore(app);
         auth = getAuth(app);
 
     } catch (error: any) {

@@ -1,6 +1,7 @@
+
 export enum UserRole {
   BASIC = 'Nivel Básico',
-  STANDARD = 'Estándar',
+  TEAM = 'Equipo',
   PRO = 'Nivel Pro',
   COLLABORATOR = 'Colaborador',
   ADMINISTRATOR = 'Administrador',
@@ -79,4 +80,10 @@ export interface ImageFile {
   base64: string;
   mimeType: string;
   name: string;
+}
+
+// FIX: Add ChatMessage interface for the chat assistant
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
 }

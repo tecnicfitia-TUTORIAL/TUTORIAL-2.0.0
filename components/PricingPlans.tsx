@@ -57,14 +57,14 @@ export const PricingPlans: React.FC<PricingPlansProps> = () => {
                     price="Gratis"
                     priceDetails=""
                     description="Ideal para empezar y para tareas ocasionales."
-                    features={['3 Generaciones IA', 'Generación por texto', 'Acceso a guías públicas']}
+                    features={['10 Generaciones IA', 'Generación por texto', 'Acceso a guías públicas']}
                 />
                  <PlanCard
-                    title="Estándar"
-                    price="1€"
+                    title="Equipo"
+                    price="15€"
                     priceDetails="/mes"
-                    description="Para usuarios regulares que necesitan más potencia."
-                    features={['20 Generaciones IA/mes', 'Análisis de tareas con imágenes', 'Historial de tareas']}
+                    description="Perfecto para pequeños equipos y startups que necesitan colaborar."
+                    features={['Para hasta 4 usuarios', '100 Generaciones IA/mes', 'Historial de equipo', 'Colaboración en guías']}
                 />
                 <PlanCard
                     title="Nivel Pro"

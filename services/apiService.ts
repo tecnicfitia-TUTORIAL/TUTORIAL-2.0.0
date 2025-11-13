@@ -1,4 +1,4 @@
-import { AuthUser, GeneratedProcess, ImageFile, TaskComplexity, TaskPriority, UserRole, GuideStatus, TaskCategory, ProcessStep, GroundingSource } from '../types';
+import { AuthUser, GeneratedProcess, ImageFile, TaskComplexity, TaskPriority, UserRole, GuideStatus, TaskCategory, ProcessStep, GroundingSource, ChatMessage } from '../types';
 import { firebaseState, auth, db } from './firebase';
 import { 
     createUserWithEmailAndPassword, 
@@ -62,6 +62,10 @@ export const loginWithGoogle = async (): Promise<AuthUser> => {
         const isNewUser = getAdditionalUserInfo(result)?.isNewUser || false;
         return handleSocialLogin(result.user, isNewUser);
     } catch (error: any) {
+        if (error.code === 'auth/unauthorized-domain') {
+            const domain = window.location.hostname;
+            throw new Error(`Dominio no autorizado. Añade '${domain}' a la lista de dominios autorizados en Firebase Authentication.`);
+        }
         console.error("Error de inicio de sesión con Google:", error);
         throw new Error("No se pudo iniciar sesión con Google. Inténtalo de nuevo.");
     }
@@ -75,6 +79,10 @@ export const loginWithApple = async (): Promise<AuthUser> => {
         const isNewUser = getAdditionalUserInfo(result)?.isNewUser || false;
         return handleSocialLogin(result.user, isNewUser);
     } catch (error: any) {
+        if (error.code === 'auth/unauthorized-domain') {
+            const domain = window.location.hostname;
+            throw new Error(`Dominio no autorizado. Añade '${domain}' a la lista de dominios autorizados en Firebase Authentication.`);
+        }
         console.error("Error de inicio de sesión con Apple:", error);
         throw new Error("No se pudo iniciar sesión con Apple. Inténtalo de nuevo.");
     }
@@ -88,10 +96,14 @@ export const loginWithGithub = async (): Promise<AuthUser> => {
         const isNewUser = getAdditionalUserInfo(result)?.isNewUser || false;
         return handleSocialLogin(result.user, isNewUser);
     } catch (error: any) {
-        console.error("Error de inicio de sesión con GitHub:", error);
+        if (error.code === 'auth/unauthorized-domain') {
+            const domain = window.location.hostname;
+            throw new Error(`Dominio no autorizado. Añade '${domain}' a la lista de dominios autorizados en Firebase Authentication.`);
+        }
         if (error.code === 'auth/account-exists-with-different-credential') {
             throw new Error("Ya existe una cuenta con este correo electrónico. Intenta iniciar sesión con otro método.");
         }
+        console.error("Error de inicio de sesión con GitHub:", error);
         throw new Error("No se pudo iniciar sesión con GitHub. Inténtalo de nuevo.");
     }
 };
@@ -132,6 +144,9 @@ export const loginWithEmail = async (email: string, pass: string): Promise<AuthU
                 throw new Error('Esta cuenta de usuario ha sido deshabilitada.');
             default:
                 console.error("Error de inicio de sesión en Firebase:", error);
+                if (error.message && error.message.includes('client is offline')) {
+                    throw new Error('Error de conexión con la base de datos. Por favor, comprueba tu conexión y vuelve a intentarlo.');
+               }
                 throw new Error('No se pudo iniciar sesión. Por favor, inténtalo de nuevo.');
         }
     }
@@ -275,8 +290,8 @@ export const changePlan = async (email: string, newRole: UserRole): Promise<Auth
 
         if(newRole === UserRole.PRO || newRole === UserRole.COLLABORATOR || newRole === UserRole.ADMINISTRATOR) {
             newPlanData.remainingGenerations = Infinity;
-        } else if (newRole === UserRole.STANDARD) {
-            newPlanData.remainingGenerations = 20;
+        } else if (newRole === UserRole.TEAM) {
+            newPlanData.remainingGenerations = 100;
         } else if(newRole === UserRole.BASIC) {
             newPlanData.remainingGenerations = 10;
         }
@@ -572,4 +587,29 @@ export const refineStepProxy = async (taskTitle: string, stepToRefine: ProcessSt
     });
 
     return { newDescription: response.text };
+};
+
+
+export const getChatResponseProxy = async (currentMessage: string, history: ChatMessage[]): Promise<string> => {
+    if (!process.env.API_KEY) {
+        throw new Error("La API Key de Google no está configurada.");
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    const geminiHistory = history.slice(0, -1).map(msg => ({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.content }]
+    }));
+    
+    const chat = ai.chats.create({
+        model: 'gemini-2.5-flash',
+        history: geminiHistory,
+        config: {
+            systemInstruction: `You are a helpful assistant for an application named TUTORIAL 2.0. This application allows users to generate step-by-step guides for various tasks using AI. Users can also view guides from other community members and contribute their own. Your role is to answer user questions about how to use the application, its features, different user plans, or any other related topic. Be concise and friendly. Respond in Spanish.`,
+        }
+    });
+
+    const response = await chat.sendMessage({ message: currentMessage });
+
+    return response.text;
 };
